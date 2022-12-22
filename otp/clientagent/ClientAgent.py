@@ -31,7 +31,9 @@ class ClientAgent(NetworkAcceptor):
         self.serverVersion = serverVersion
 
         # Set our DC hash:
-        self.dcHash = dcHash or dcFile.getHash()
+        self.dcHash = dcHash
+        if self.dcHash is None:
+            self.dcHash = dcFile.getHash()
 
         # Create our channel tracker:
         self.channelTracker = ChannelTracker(channelMin, channelMax)
