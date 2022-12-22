@@ -9,7 +9,7 @@ class NetworkClient(UniqueObject):
         self.connected = True
 
         # Run our tasks to make sure the client is connected:
-        taskMgr.add(self.monitorTask, self.uniqueName('monitorTask'))
+        taskMgr.add(self.monitorTask, self.uniqueName('monitor-task'))
 
     def monitorTask(self, task):
         if not self.acceptor.connectionReader.isConnectionOk(self.connection):
