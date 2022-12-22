@@ -1,5 +1,5 @@
 from panda3d.core import QueuedConnectionManager, QueuedConnectionListener, QueuedConnectionReader
-from panda3d.core import ConnectionWriter, PointerToConnection, NetAddress
+from panda3d.core import ConnectionWriter, PointerToConnection, NetAddress, NetDatagram
 
 from otp.core.UniqueObject import UniqueObject
 
@@ -10,6 +10,7 @@ class NetworkAcceptor(UniqueObject):
         self.host = host
         self.port = port
 
+        # Set up our networking interfaces:
         self.connectionManager = QueuedConnectionManager()
         self.connectionListener = QueuedConnectionListener(self.connectionManager, 0)
         self.connectionReader = QueuedConnectionReader(self.connectionManager, 0)
@@ -22,7 +23,9 @@ class NetworkAcceptor(UniqueObject):
         taskMgr.add(self.readerPollTask, self.uniqueName('reader-poll-task'))
 
     def listenerPollTask(self, task):
-        # Listens for new connections (i.e. new clients)
+        """
+        Listens for new connections (i.e. new clients).
+        """
         if self.connectionListener.newConnectionAvailable():
             rendezvous = PointerToConnection()
             netAddress = NetAddress()
@@ -40,3 +43,27 @@ class NetworkAcceptor(UniqueObject):
                 self.createClient(connection)
 
         return task.cont
+
+    def readerPollTask(self, task):
+        """
+        Continuously polls for new messages on the server.
+        """
+        while self.readerPollOnce():
+            pass
+
+        return task.cont
+
+    def readerPollOnce(self):
+        """
+        Checks for messages available to the server.
+        """
+        # Check if we have any data available:
+        dataAvailable = self.connectionReader.dataAvailable()
+        if dataAvailable:
+            # Get the data:
+            datagram = NetDatagram()
+            if self.connectionReader.getData(datagram):
+                # We got the data! We can now process it:
+                self.handleClientDatagram(datagram)
+
+        return dataAvailable
