@@ -35,6 +35,8 @@ class ClientAgent(NetworkAcceptor):
         """
         Handles a datagram sent by a client.
         """
+        connection = datagram.getConnection()
+        self.clients[connection].handleClientDatagram(datagram)
 
     @staticmethod
     def createFromConfig(config):
