@@ -38,6 +38,14 @@ class ClientAgent(NetworkAcceptor):
         # Create our channel tracker:
         self.channelTracker = ChannelTracker(channelMin, channelMax)
 
+    def createClient(self, connection):
+        pass
+
+    def handleClientDatagram(self, datagram):
+        """
+        Handles a datagram sent by a client.
+        """
+
     @staticmethod
     def createFromConfig(config):
         # Get our config values:

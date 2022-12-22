@@ -69,4 +69,9 @@ class NetworkAcceptor(UniqueObject):
         return dataAvailable
 
     def createClient(self, connection):
+        # Must be overridden by subclass.
+        raise NotImplementedError
+
+    def handleClientDatagram(self, datagram):
+        # Must be overridden by subclass.
         raise NotImplementedError
