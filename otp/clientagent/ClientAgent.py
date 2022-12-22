@@ -1,6 +1,7 @@
 from panda3d.core import UniqueIdAllocator
 
 from otp.net.NetworkAcceptor import NetworkAcceptor
+from otp.clientagent.Client import Client
 
 
 class ClientAgent(NetworkAcceptor):
@@ -19,8 +20,16 @@ class ClientAgent(NetworkAcceptor):
         # Create our channel allocator:
         self.channelAllocator = UniqueIdAllocator(channelMin, channelMax)
 
+        # A dictionary of connections to clients:
+        self.clients = {}
+
+    def allocateChannel(self):
+        return self.channelAllocator.allocate()
+
     def createClient(self, connection):
-        pass
+        channel = self.allocateChannel()
+        client = Client(self, connection, channel)
+        self.clients[connection] = client
 
     def handleClientDatagram(self, datagram):
         """
