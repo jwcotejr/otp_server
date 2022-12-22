@@ -1,13 +1,19 @@
 {
+    "general": {
+        "dc-files": [
+            "../../open-toontown/open-toontown/etc/otp.dc",
+            "../../open-toontown/open-toontown/etc/toon.dc"
+        ]
+    },
+    "messagedirector": {
+        "host": "127.0.0.1",
+        "port": 6666
+    },
     "services": [
         {
-            "type": "messagedirector",
-            "host": "127.0.0.1",
-            "port": 6666
+            "type": "clientagent",
+            "host": "0.0.0.0",
+            "port": 6667
         }
-    ],
-    "dc-files": [
-        "../../open-toontown/open-toontown/etc/otp.dc",
-        "../../open-toontown/open-toontown/etc/toon.dc"
     ]
 }
