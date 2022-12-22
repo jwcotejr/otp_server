@@ -1,10 +1,34 @@
 from otp.net.NetworkAcceptor import NetworkAcceptor
 
 
+class ChannelTracker:
+
+    def __init__(self, channelMin, channelMax):
+        self.currentChannel = channelMin
+        self.maxChannel = channelMax
+        self.unusedChannels = []
+
+    def allocateChannel(self):
+        # Check if we have any unused channels:
+        if len(self.unusedChannels):
+            return self.unusedChannels.pop()
+
+        # Increase the current channel:
+        self.currentChannel += 1
+        return self.currentChannel - 1
+
+    def freeChannel(self, channel):
+        # Add the channel to the unused channels list:
+        self.unusedChannels.append(channel)
+
+
 class ClientAgent(NetworkAcceptor):
 
     def __init__(self, host, port, serverVersion, dcHash, channelMin, channelMax):
         NetworkAcceptor.__init__(self, host, port)
+
+        # Create our channel tracker:
+        self.channelTracker = ChannelTracker(channelMin, channelMax)
 
     @staticmethod
     def createFromConfig(config):
