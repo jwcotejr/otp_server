@@ -13,7 +13,12 @@
         {
             "type": "clientagent",
             "host": "0.0.0.0",
-            "port": 6667
+            "port": 6667,
+            "server-version": "sv1.0.47.38",
+            "channels": {
+                "min": 1000000000,
+                "max": 1009999999
+            }
         }
     ]
 }
