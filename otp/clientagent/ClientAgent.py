@@ -27,6 +27,12 @@ class ClientAgent(NetworkAcceptor):
     def __init__(self, host, port, serverVersion, dcHash, channelMin, channelMax):
         NetworkAcceptor.__init__(self, host, port)
 
+        # Set our server version:
+        self.serverVersion = serverVersion
+
+        # Set our DC hash:
+        self.dcHash = dcHash or dcFile.getHash()
+
         # Create our channel tracker:
         self.channelTracker = ChannelTracker(channelMin, channelMax)
 

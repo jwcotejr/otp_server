@@ -67,3 +67,6 @@ class NetworkAcceptor(UniqueObject):
                 self.handleClientDatagram(datagram)
 
         return dataAvailable
+
+    def createClient(self, connection):
+        raise NotImplementedError
