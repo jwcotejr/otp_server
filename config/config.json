@@ -1,4 +1,11 @@
 {
+    "services": [
+        {
+            "type": "messagedirector",
+            "host": "127.0.0.1",
+            "port": 6666
+        }
+    ],
     "dc-files": [
         "../../open-toontown/open-toontown/etc/otp.dc",
         "../../open-toontown/open-toontown/etc/toon.dc"
