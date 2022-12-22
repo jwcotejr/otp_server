@@ -1,8 +1,8 @@
-from otp.messagedirector.MessageDirector import MessageDirector
+from otp.clientagent.ClientAgent import ClientAgent
 
 
 services = {
-    'messagedirector': MessageDirector
+    'clientagent': ClientAgent
 }
 
 
