@@ -1,4 +1,5 @@
 from otp.net.NetworkClient import NetworkClient
+from otp.core.Globals import ClientState
 
 
 class Client(NetworkClient):
@@ -7,3 +8,4 @@ class Client(NetworkClient):
         NetworkClient.__init__(self, acceptor, client)
 
         self.channel = channel
+        self.state = ClientState.NEW
