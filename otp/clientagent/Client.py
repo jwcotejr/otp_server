@@ -24,7 +24,6 @@ class Client(NetworkClient):
         datagram = PyDatagram()
         datagram.addUint8(1)  # One channel.
         datagram.addUint64(MsgTypes.CONTROL_MESSAGE)  # Control message.
-        datagram.addUint64(self.channel)  # Source channel.
         datagram.addUint16(msgType)  # Message type.
         return datagram
 
@@ -39,5 +38,5 @@ class Client(NetworkClient):
         Subscribes to a channel.
         """
         datagram = self.createHandledDatagram(MsgTypes.CONTROL_SET_CHANNEL)
-        datagram.addUint64(channel)
+        datagram.addUint64(channel)  # Channel we are subscribing to.
         self.sendUpstream(datagram)
