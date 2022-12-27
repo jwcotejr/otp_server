@@ -29,6 +29,12 @@ class Client(NetworkClient):
         datagram.addUint16(msgType)  # Message type.
         return datagram
 
+    def sendUpstream(self, datagram):
+        """
+        Sends a datagram to the Message Director.
+        """
+        self.mdConnection.sendUpstream(datagram)
+
     def subscribeChannel(self, channel):
         """
         Subscribes to a channel.
