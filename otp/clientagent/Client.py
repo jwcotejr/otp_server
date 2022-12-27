@@ -3,7 +3,6 @@ from direct.distributed.PyDatagram import PyDatagram
 from otp.net.NetworkClient import NetworkClient
 from otp.core.Globals import ClientState
 from otp.core import MsgTypes
-from otp.core import Types
 
 
 class Client(NetworkClient):
@@ -24,7 +23,7 @@ class Client(NetworkClient):
         """
         datagram = PyDatagram()
         datagram.addUint8(1)  # One channel.
-        datagram.addUint64(Types.BCHAN_MESSAGEDIRECTOR)  # Message Director channel.
+        datagram.addUint64(MsgTypes.CONTROL_MESSAGE)  # Control message.
         datagram.addUint64(self.channel)  # Source channel.
         datagram.addUint16(msgType)  # Message type.
         return datagram
