@@ -13,4 +13,8 @@ class ToontownClient(Client):
             print(msgType)
 
     def handleClientLoginToontown(self, dgi):
-        print('handleClientLoginToontown')
+        playToken = dgi.getString()
+        serverVersion = dgi.getString()
+        hashVal = dgi.getUint32()
+        tokenType = dgi.getInt32()
+        wantMagicWords = dgi.getString()

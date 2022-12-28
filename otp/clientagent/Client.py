@@ -5,6 +5,7 @@ from otp.net.NetworkClient import NetworkClient
 from otp.net.NetworkConnector import NetworkConnector
 from otp.core.Globals import ClientState
 from otp.core import MsgTypes
+from otp.clientagent import ClientMessages
 
 
 class Client(NetworkClient):
@@ -73,3 +74,14 @@ class Client(NetworkClient):
         datagram = self.createHandledDatagram(MsgTypes.CONTROL_SET_CHANNEL)
         datagram.addUint64(channel)  # Channel we are subscribing to.
         self.sendUpstream(datagram)
+
+    def sendDisconnect(self, reason, message):
+        if not self.connected:
+            return
+
+        datagram = PyDatagram()
+        datagram.addUint16(ClientMessages.CLIENT_GO_GET_LOST)
+        datagram.addUint16(reason)
+        datagram.addString(message)
+        self.sendDownstream(datagram)
+        self.handleDisconnect()
