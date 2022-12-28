@@ -11,6 +11,9 @@ class NetworkClient(UniqueObject):
         # Run our tasks to make sure the client is connected:
         taskMgr.add(self.monitorTask, self.uniqueName('monitor-task'))
 
+    def handleDisconnect(self):
+        raise NotImplementedError
+
     def monitorTask(self, task):
         if not self.acceptor.connectionReader.isConnectionOk(self.connection):
             self.handleDisconnect()
