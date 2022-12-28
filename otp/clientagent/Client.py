@@ -41,8 +41,8 @@ class Client(NetworkClient):
             self.handlePreAuth(dgi)
 
     def handlePreAuth(self, dgi):
-        msgType = dgi.getUint16()
-        print(msgType)
+        # Must be overridden by subclass.
+        raise NotImplementedError
 
     def handleServerDatagram(self, datagram):
         """
