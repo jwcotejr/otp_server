@@ -26,10 +26,22 @@ class ClientAgent(NetworkAcceptor):
     def allocateChannel(self):
         return self.channelAllocator.allocate()
 
+    def deallocateChannel(self, channel):
+        self.channelAllocator.free(channel)
+
     def createClient(self, connection):
         channel = self.allocateChannel()
         client = ToontownClient(self, connection, channel)
         self.clients[connection] = client
+
+    def removeClient(self, client):
+        # First, check to see if the client is connected:
+        if not client.isConnected():
+            return
+
+        self.connectionReader.removeConnection(client.getConnection())
+        self.connectionManager.closeConnection(client.getConnection())
+        del self.clients[client.getConnection()]
 
     def handleClientDatagram(self, datagram):
         """

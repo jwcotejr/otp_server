@@ -47,6 +47,13 @@ class NetworkConnector(UniqueObject):
     def sendUpstream(self, datagram):
         self.connectionWriter.send(datagram, self.connection)
 
+    def closeConnection(self):
+        """
+        Close the connection.
+        """
+        self.connectionReader.removeConnection(self.connection)
+        self.connectionManager.closeConnection(self.connection)
+
     def handleServerDatagram(self, datagram):
         # Must be overridden by subclass.
         raise NotImplementedError

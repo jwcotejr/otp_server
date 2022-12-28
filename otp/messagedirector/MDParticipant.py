@@ -29,3 +29,19 @@ class MDParticipant(NetworkClient):
     def subscribeChannel(self, channel):
         self.channels.append(channel)
         self.acceptor.subscribeChannel(self, channel)
+
+    def unsubscribeChannel(self, channel):
+        self.channels.remove(channel)
+        self.acceptor.unsubscribeChannel(self, channel)
+
+    def handleDisconnect(self):
+        """
+        Gets called when the participant loses connection to the Message Director.
+        """
+        # Unsubscribe from all of our channels:
+        for channel in self.channels[:]:
+            self.unsubscribeChannel(channel)
+
+        # Remove the participant:
+        self.acceptor.removeClient(self)
+        self.connected = False

@@ -14,6 +14,15 @@ class NetworkClient(UniqueObject):
     def sendDownstream(self, datagram):
         self.acceptor.connectionWriter.send(datagram, self.connection)
 
+    def isConnected(self):
+        return self.connected
+
+    def getConnection(self):
+        return self.connection
+
+    def cleanup(self):
+        taskMgr.remove(self.uniqueName('monitor-task'))
+
     def handleDisconnect(self):
         raise NotImplementedError
 

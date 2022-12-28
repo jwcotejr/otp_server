@@ -23,9 +23,24 @@ class MessageDirector(NetworkAcceptor):
         """
         self.channelMap.subscribe(participant, channel)
 
+    def unsubscribeChannel(self, participant, channel):
+        """
+        Unsubscribes a participant from a channel.
+        """
+        self.channelMap.unsubscribe(participant, channel)
+
     def createClient(self, connection):
         participant = MDParticipant(self, connection)
         self.participants[connection] = participant
+
+    def removeClient(self, client):
+        # First, check to see if the client is connected:
+        if not client.isConnected():
+            return
+
+        self.connectionReader.removeConnection(client.getConnection())
+        self.connectionManager.closeConnection(client.getConnection())
+        del self.participants[client.getConnection()]
 
     def handleClientDatagram(self, datagram):
         """

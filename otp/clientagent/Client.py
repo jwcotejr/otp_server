@@ -75,6 +75,15 @@ class Client(NetworkClient):
         datagram.addUint64(channel)  # Channel we are subscribing to.
         self.sendUpstream(datagram)
 
+    def handleDisconnect(self):
+        """
+        Handles a client disconnect.
+        """
+        self.acceptor.deallocateChannel(self.channel)
+        self.acceptor.removeClient(self)
+        self.mdConnection.closeConnection()
+        self.connected = False
+
     def sendDisconnect(self, reason, message):
         if not self.connected:
             return
