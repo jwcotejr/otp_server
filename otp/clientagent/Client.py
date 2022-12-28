@@ -1,4 +1,5 @@
 from direct.distributed.PyDatagram import PyDatagram
+from direct.distributed.PyDatagramIterator import PyDatagramIterator
 
 from otp.net.NetworkClient import NetworkClient
 from otp.net.NetworkConnector import NetworkConnector
@@ -29,6 +30,19 @@ class Client(NetworkClient):
         # Subscribe to our own channel and the client channel:
         self.subscribeChannel(self.channel)
         self.subscribeChannel(MsgTypes.CHANNEL_CLIENT_BROADCAST)
+
+    def handleClientDatagram(self, datagram):
+        """
+        Handles a datagram coming from the client.
+        """
+        dgi = PyDatagramIterator(datagram)
+
+        if self.state == ClientState.NEW:
+            self.handlePreAuth(dgi)
+
+    def handlePreAuth(self, dgi):
+        msgType = dgi.getUint16()
+        print(msgType)
 
     def handleServerDatagram(self, datagram):
         """
