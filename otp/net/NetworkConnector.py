@@ -1,5 +1,5 @@
 from panda3d.core import QueuedConnectionManager, QueuedConnectionReader
-from panda3d.core import ConnectionWriter
+from panda3d.core import ConnectionWriter, NetDatagram
 
 from otp.core.UniqueObject import UniqueObject
 
@@ -10,6 +10,7 @@ class NetworkConnector(UniqueObject):
         self.host = host
         self.port = port
 
+        # Set up our networking interfaces:
         self.connectionManager = QueuedConnectionManager()
         self.connectionReader = QueuedConnectionReader(self.connectionManager, 0)
         self.connectionWriter = ConnectionWriter(self.connectionManager, 0)
@@ -47,4 +48,5 @@ class NetworkConnector(UniqueObject):
         self.connectionWriter.send(datagram, self.connection)
 
     def handleServerDatagram(self, datagram):
+        # Must be overridden by subclass.
         raise NotImplementedError
