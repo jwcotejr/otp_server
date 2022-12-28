@@ -1,6 +1,7 @@
 from direct.distributed.PyDatagram import PyDatagram
 
 from otp.net.NetworkClient import NetworkClient
+from otp.net.NetworkConnector import NetworkConnector
 from otp.core.Globals import ClientState
 from otp.core import MsgTypes
 
@@ -13,9 +14,27 @@ class Client(NetworkClient):
         self.channel = channel
         self.state = ClientState.NEW
 
+        # Create our connection to the Message Director and override a method:
+        self.mdConnection = None
+        mdConfig = config.get('messagedirector', {})
+        if mdConfig:
+            mdHost = mdConfig['host']
+            mdPort = mdConfig['port']
+            self.mdConnection = NetworkConnector(mdHost, mdPort)
+            self.mdConnection.handleServerDatagram = self.handleServerDatagram
+
+        if self.mdConnection is None:
+            raise Exception('Unable to open a connection with the Message Director!')
+
         # Subscribe to our own channel and the client channel:
         self.subscribeChannel(self.channel)
         self.subscribeChannel(MsgTypes.CHANNEL_CLIENT_BROADCAST)
+
+    def handleServerDatagram(self, datagram):
+        """
+        Handles a datagram coming from the Message Director.
+        """
+        raise NotImplementedError
 
     def createHandledDatagram(self, msgType):
         """
