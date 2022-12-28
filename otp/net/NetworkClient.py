@@ -11,6 +11,9 @@ class NetworkClient(UniqueObject):
         # Run our tasks to make sure the client is connected:
         taskMgr.add(self.monitorTask, self.uniqueName('monitor-task'))
 
+    def sendDownstream(self, datagram):
+        self.acceptor.connectionWriter.send(datagram, self.connection)
+
     def handleDisconnect(self):
         raise NotImplementedError
 
