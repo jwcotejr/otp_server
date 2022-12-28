@@ -2,6 +2,7 @@ from direct.distributed.PyDatagramIterator import PyDatagramIterator
 
 from otp.net.NetworkAcceptor import NetworkAcceptor
 from otp.messagedirector.MDParticipant import MDParticipant
+from otp.messagedirector.ChannelMap import ChannelMap
 from otp.core import MsgTypes
 
 
@@ -12,6 +13,15 @@ class MessageDirector(NetworkAcceptor):
 
         # A dictionary of connections to participants:
         self.participants = {}
+
+        # The map of channels to list of participants:
+        self.channelMap = ChannelMap()
+
+    def subscribeChannel(self, participant, channel):
+        """
+        Subscribes a participant to a channel.
+        """
+        self.channelMap.subscribe(participant, channel)
 
     def createClient(self, connection):
         participant = MDParticipant(self, connection)
