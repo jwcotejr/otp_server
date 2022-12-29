@@ -1,10 +1,36 @@
 from otp.net.NetworkConnector import NetworkConnector
 
 
+class GenerateRange:
+
+    def __init__(self, min, max):
+        self.min = min
+        self.max = max
+        self.current = None
+
+    def getMin(self):
+        return self.min
+
+    def getMax(self):
+        return self.max
+
+    def setCurrent(self, current):
+        self.current = current
+
+    def getCurrent(self):
+        return self.current
+
+
 class DatabaseServer(NetworkConnector):
 
     def __init__(self, control, generateMin, generateMax, mdHost, mdPort):
         NetworkConnector.__init__(self, mdHost, mdPort)
+
+        # Control channel that we will subscribe to:
+        self.control = control
+
+        # Create our generate range:
+        self.generateRange = GenerateRange(generateMin, generateMax)
 
     @staticmethod
     def createFromConfig(serviceConfig):
