@@ -23,6 +23,12 @@ class ClientAgent(NetworkAcceptor):
         # A dictionary of connections to clients:
         self.clients = {}
 
+    def getDcHash(self):
+        return self.dcHash
+
+    def getServerVersion(self):
+        return self.serverVersion
+
     def allocateChannel(self):
         return self.channelAllocator.allocate()
 
