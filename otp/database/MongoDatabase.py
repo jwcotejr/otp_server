@@ -17,6 +17,15 @@ class MongoDatabase(DatabaseBackend):
         # Get our MongoDB:
         self.mongodb = self.mongoClient[database]
 
+        # Check if we need to create our initial entries in the database:
+        otpGlobals = self.mongodb.otp.globals.find_one({'_id': 'doid'})
+        if otpGlobals is None:
+            # We need to create our initial entry:
+            self.mongodb.otp.globals.insert_one({
+                '_id': 'doid',
+                'seq': self.getMinId()
+            })
+
     @staticmethod
     def createFromConfig(backendConfig, generateMin, generateMax):
         # Get our config values:
