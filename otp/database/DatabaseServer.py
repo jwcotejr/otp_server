@@ -54,6 +54,8 @@ class DatabaseServer(NetworkConnector):
         """
         datagram = self.createHandledDatagram(MsgTypes.CONTROL_SET_CHANNEL)
         datagram.addUint64(channel)  # Channel we are subscribing to.
+
+        # Send the datagram to the message director:
         self.sendUpstream(datagram)
 
     @staticmethod
