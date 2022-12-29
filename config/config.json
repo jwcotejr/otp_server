@@ -26,6 +26,10 @@
             "generate": {
                 "min": 100000000,
                 "max": 399999999
+            },
+            "backend": {
+                "type": "mongodb",
+                "server": "mongodb://localhost:27017/toontown"
             }
         }
     ]
