@@ -1,4 +1,7 @@
+from direct.distributed.PyDatagram import PyDatagram
+
 from otp.net.NetworkConnector import NetworkConnector
+from otp.core import MsgTypes
 
 
 class GenerateRange:
@@ -31,6 +34,27 @@ class DatabaseServer(NetworkConnector):
 
         # Create our generate range:
         self.generateRange = GenerateRange(generateMin, generateMax)
+
+        # Subscribe to our control channel:
+        self.subscribeChannel(self.control)
+
+    def createHandledDatagram(self, msgType):
+        """
+        Creates a datagram that will be handled on the Message Director.
+        """
+        datagram = PyDatagram()
+        datagram.addUint8(1)  # One channel.
+        datagram.addUint64(MsgTypes.CONTROL_MESSAGE)  # Control message.
+        datagram.addUint16(msgType)  # Message type.
+        return datagram
+
+    def subscribeChannel(self, channel):
+        """
+        Subscribes to a channel.
+        """
+        datagram = self.createHandledDatagram(MsgTypes.CONTROL_SET_CHANNEL)
+        datagram.addUint64(channel)  # Channel we are subscribing to.
+        self.sendUpstream(datagram)
 
     @staticmethod
     def createFromConfig(serviceConfig):
