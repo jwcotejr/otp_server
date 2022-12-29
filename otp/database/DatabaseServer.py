@@ -1,4 +1,5 @@
 from direct.distributed.PyDatagram import PyDatagram
+from direct.distributed.PyDatagramIterator import PyDatagramIterator
 
 from otp.net.NetworkConnector import NetworkConnector
 from otp.core import MsgTypes
@@ -57,6 +58,20 @@ class DatabaseServer(NetworkConnector):
 
         # Send the datagram to the message director:
         self.sendUpstream(datagram)
+
+    def handleServerDatagram(self, datagram):
+        """
+        Handles a datagram from the Message Director.
+        """
+        dgi = PyDatagramIterator(datagram)
+
+        # Get the source channel:
+        channel = dgi.getUint64()
+
+        # Get the message type:
+        msgType = dgi.getUint16()
+
+        # Handle the message:
 
     @staticmethod
     def createFromConfig(serviceConfig):
