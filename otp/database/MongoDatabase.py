@@ -8,5 +8,8 @@ class MongoDatabase(DatabaseBackend):
 
     @staticmethod
     def createFromConfig(backendConfig, generateMin, generateMax):
+        # Get our config values:
         server = backendConfig['server']
+
+        # Create our MongoDatabase backend:
         return MongoDatabase(server, generateMin, generateMax)
