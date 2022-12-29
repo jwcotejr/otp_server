@@ -2,39 +2,21 @@ from direct.distributed.PyDatagram import PyDatagram
 from direct.distributed.PyDatagramIterator import PyDatagramIterator
 
 from otp.net.NetworkConnector import NetworkConnector
+from otp.database import DBBackendFactory
 from otp.core import MsgTypes
-
-
-class GenerateRange:
-
-    def __init__(self, min, max):
-        self.min = min
-        self.max = max
-        self.current = None
-
-    def getMin(self):
-        return self.min
-
-    def getMax(self):
-        return self.max
-
-    def setCurrent(self, current):
-        self.current = current
-
-    def getCurrent(self):
-        return self.current
 
 
 class DatabaseServer(NetworkConnector):
 
-    def __init__(self, control, generateMin, generateMax, mdHost, mdPort):
+    def __init__(self, control, generateMin, generateMax, backendConfig, mdHost, mdPort):
         NetworkConnector.__init__(self, mdHost, mdPort)
 
         # Control channel that we will subscribe to:
         self.control = control
 
-        # Create our generate range:
-        self.generateRange = GenerateRange(generateMin, generateMax)
+        # Create our backend:
+        backendName = backendConfig['type']
+        self.backend = DBBackendFactory.createBackend(backendName, backendConfig, generateMin, generateMax)
 
         # Subscribe to our control channel:
         self.subscribeChannel(self.control)
@@ -85,8 +67,9 @@ class DatabaseServer(NetworkConnector):
         control = serviceConfig['control']
         generateMin = serviceConfig['generate']['min']
         generateMax = serviceConfig['generate']['max']
+        backendConfig = serviceConfig['backend']
         mdHost = mdConfig['host']
         mdPort = mdConfig['port']
 
         # Create our DatabaseServer service:
-        DatabaseServer(control, generateMin, generateMax, mdHost, mdPort)
+        DatabaseServer(control, generateMin, generateMax, backendConfig, mdHost, mdPort)
