@@ -1,3 +1,4 @@
+from direct.distributed.PyDatagram import PyDatagram
 from direct.distributed.PyDatagramIterator import PyDatagramIterator
 
 from otp.net.NetworkAcceptor import NetworkAcceptor
@@ -57,12 +58,40 @@ class MessageDirector(NetworkAcceptor):
             channel = dgi.getUint64()
             channels.append(channel)
 
+        # Get the participant from the connection:
+        connection = datagram.getConnection()
+        participant = self.participants[connection]
+
         # Check if the message is going to us:
         if channelCount == 1 and channels[0] == MsgTypes.CONTROL_MESSAGE:
-            # Since this message is being handled by us, we will need to get the participant via the connection:
-            connection = datagram.getConnection()
-            participant = self.participants[connection]
-
-            # Now that we have the participant, we can have them handle the message directly:
+            # Handle the message directly:
             participant.handleClientDatagram(dgi)
             return
+
+        # It doesn't look like we are handling the message directly; look up our participants:
+        participants = self.lookupParticipants(channels)
+
+        # We want to remove the sender from the participant list:
+        if participant in participants:
+            participants.remove(participant)
+
+        # Create a datagram out of our remaining bytes:
+        datagram = PyDatagram(dgi.getRemainingBytes())
+
+        # Iterate through the participants and send them the message:
+        for targetParticipant in participants:
+            targetParticipant.sendDownstream(datagram)
+
+    def lookupParticipants(self, channels):
+        """
+        Gets all of the participants subscribed to a certain channel.
+        """
+        participants = []
+
+        # Iterate through all of our channels:
+        for channel in channels:
+            # Fetch the participants:
+            participants.extend(self.channelMap.getParticipantsFromChannel(channel))
+
+        # Return our list of participants:
+        return participants
