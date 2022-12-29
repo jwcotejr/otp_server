@@ -43,6 +43,20 @@ class Client(NetworkClient):
         """
         raise NotImplementedError
 
+    def createRoutedDatagram(self, msgType, channels=[]):
+        """
+        Creates a datagram that will be routed by the Message Director.
+        """
+        datagram = PyDatagram()
+        datagram.addUint8(len(channels))  # Number of channels.
+
+        for channel in channels:
+            datagram.addUint64(channel)  # Destination channel.
+
+        datagram.addUint64(self.channel)  # Source channel.
+        datagram.addUint16(msgType)  # Message type.
+        return datagram
+
     def createHandledDatagram(self, msgType):
         """
         Creates a datagram that will be handled on the Message Director.
