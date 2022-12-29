@@ -2,4 +2,8 @@ from otp.net.NetworkConnector import NetworkConnector
 
 
 class DatabaseServer(NetworkConnector):
-    pass
+
+    @staticmethod
+    def createFromConfig(serviceConfig):
+        # Get our config values:
+        pass

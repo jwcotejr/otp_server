@@ -1,8 +1,10 @@
 from otp.clientagent.ClientAgent import ClientAgent
+from otp.database.DatabaseServer import DatabaseServer
 
 
 services = {
-    'clientagent': ClientAgent
+    'clientagent': ClientAgent,
+    'database': DatabaseServer
 }
 
 

@@ -6,7 +6,7 @@ from otp.clientagent.ToontownClient import ToontownClient
 
 class ClientAgent(NetworkAcceptor):
 
-    def __init__(self, host, port, serverVersion, dcHash, channelMin, channelMax):
+    def __init__(self, host, port, serverVersion, dcHash, channelMin, channelMax, mdHost, mdPort):
         NetworkAcceptor.__init__(self, host, port)
 
         # Set our server version:
@@ -19,6 +19,10 @@ class ClientAgent(NetworkAcceptor):
 
         # Create our channel allocator:
         self.channelAllocator = UniqueIdAllocator(channelMin, channelMax)
+
+        # Message Director info:
+        self.mdHost = mdHost
+        self.mdPort = mdPort
 
         # A dictionary of connections to clients:
         self.clients = {}
@@ -37,7 +41,7 @@ class ClientAgent(NetworkAcceptor):
 
     def createClient(self, connection):
         channel = self.allocateChannel()
-        client = ToontownClient(self, connection, channel)
+        client = ToontownClient(self, connection, channel, self.mdHost, self.mdPort)
         self.clients[connection] = client
 
     def removeClient(self, client):
@@ -58,6 +62,12 @@ class ClientAgent(NetworkAcceptor):
 
     @staticmethod
     def createFromConfig(serviceConfig):
+        # Do we have a Message Director?
+        mdConfig = config.get('messagedirector', {})
+        if not mdConfig:
+            # If we don't have a Message Director, we cannot create a Client Agent.
+            raise Exception('Cannot create a Client Agent without a Message Director!')
+
         # Get our config values:
         host = serviceConfig['host']
         port = serviceConfig['port']
@@ -65,6 +75,8 @@ class ClientAgent(NetworkAcceptor):
         dcHash = serviceConfig.get('dc-hash')
         channelMin = serviceConfig['channels']['min']
         channelMax = serviceConfig['channels']['max']
+        mdHost = mdConfig['host']
+        mdPort = mdConfig['port']
 
         # Create our ClientAgent service:
-        ClientAgent(host, port, serverVersion, dcHash, channelMin, channelMax)
+        ClientAgent(host, port, serverVersion, dcHash, channelMin, channelMax, mdHost, mdPort)

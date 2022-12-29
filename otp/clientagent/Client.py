@@ -10,23 +10,15 @@ from otp.clientagent import ClientMessages
 
 class Client(NetworkClient):
 
-    def __init__(self, acceptor, client, channel):
+    def __init__(self, acceptor, client, channel, mdHost, mdPort):
         NetworkClient.__init__(self, acceptor, client)
 
         self.channel = channel
         self.state = ClientState.NEW
 
         # Create our connection to the Message Director and override a method:
-        self.mdConnection = None
-        mdConfig = config.get('messagedirector', {})
-        if mdConfig:
-            mdHost = mdConfig['host']
-            mdPort = mdConfig['port']
-            self.mdConnection = NetworkConnector(mdHost, mdPort)
-            self.mdConnection.handleServerDatagram = self.handleServerDatagram
-
-        if self.mdConnection is None:
-            raise Exception('Unable to open a connection with the Message Director!')
+        self.mdConnection = NetworkConnector(mdHost, mdPort)
+        self.mdConnection.handleServerDatagram = self.handleServerDatagram
 
         # Subscribe to our own channel and the client channel:
         self.subscribeChannel(self.channel)
