@@ -57,14 +57,14 @@ class ClientAgent(NetworkAcceptor):
         self.clients[connection].handleClientDatagram(datagram)
 
     @staticmethod
-    def createFromConfig(config):
+    def createFromConfig(serviceConfig):
         # Get our config values:
-        host = config['host']
-        port = config['port']
-        serverVersion = config['server-version']
-        dcHash = config.get('dc-hash')
-        channelMin = config['channels']['min']
-        channelMax = config['channels']['max']
+        host = serviceConfig['host']
+        port = serviceConfig['port']
+        serverVersion = serviceConfig['server-version']
+        dcHash = serviceConfig.get('dc-hash')
+        channelMin = serviceConfig['channels']['min']
+        channelMax = serviceConfig['channels']['max']
 
         # Create our ClientAgent service:
         ClientAgent(host, port, serverVersion, dcHash, channelMin, channelMax)
