@@ -23,6 +23,9 @@ class DatabaseServer(NetworkConnector):
         self.objectTypesByName = {}
         self.handleDcObjectTypes()
 
+        print(self.dclassesByObjectType)
+        print(self.objectTypesByName)
+
         # Subscribe to our control channel:
         self.subscribeChannel(self.control)
 
@@ -61,7 +64,7 @@ class DatabaseServer(NetworkConnector):
         # Now we check for any classes in our DC file that might have
         # inherited from a class that is in our DcObjectType dictionaries:
         for n in range(dcFile.getNumClasses()):
-            dcClass = dcFile.getClass(i)
+            dcClass = dcFile.getClass(n)
             isDcObject = isInheritedDcObjectClass(dcClass)
             if not isDcObject:
                 continue
