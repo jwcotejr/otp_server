@@ -18,8 +18,58 @@ class DatabaseServer(NetworkConnector):
         backendName = backendConfig['type']
         self.backend = DBBackendFactory.createBackend(backendName, backendConfig, generateMin, generateMax)
 
+        # Handle our DcObjectTypes:
+        self.dclassesByObjectType = {}
+        self.objectTypesByName = {}
+        self.handleDcObjectTypes()
+
         # Subscribe to our control channel:
         self.subscribeChannel(self.control)
+
+    def handleDcObjectTypes(self):
+        dcObjectType = 0
+
+        # Check all base classes in our DC file for the "DcObjectType" field.
+        for n in range(dcFile.getNumClasses()):
+            dcClass = dcFile.getClass(n)
+            for i in range(dcClass.getNumFields()):
+                field = dcClass.getField(i)
+                if field.getName() == "DcObjectType":
+                    # Found one! Increment dcObjectType and add it to our dictionaries:
+                    dcObjectType += 1
+                    self.dclassesByObjectType[dcObjectType] = dcClass
+                    self.objectTypesByName[dcClass.getName()] = dcObjectType
+
+        def isInheritedDcObjectClass(dcClass):
+            """
+            If a class in our DC file has a parent class, check if the parent
+            class is in our DcObjectType dictionaries, and return the result.
+            """
+            isDcObject = False
+            for n in range(dcClass.getNumParents()):
+                parent = dcClass.getParent(n)
+                isDcObject = parent.getName() in self.objectTypesByName
+                if not isDcObject and parent.getNumParents() > 0:
+                    # Check the parent of this parent:
+                    isDcObject = isInheritedDcObjectClass(parent)
+
+                if not isDcObject:
+                    continue
+
+            return isDcObject
+
+        # Now we check for any classes in our DC file that might have
+        # inherited from a class that is in our DcObjectType dictionaries:
+        for n in range(dcFile.getNumClasses()):
+            dcClass = dcFile.getClass(i)
+            isDcObject = isInheritedDcObjectClass(dcClass)
+            if not isDcObject:
+                continue
+
+            # Found one! Increment dcObjectType and add it to our dictionaries:
+            dcObjectType += 1
+            self.dclassesByObjectType[dcObjectType] = dcClass
+            self.objectTypesByName[dcClass.getName()] = dcObjectType
 
     def createHandledDatagram(self, msgType):
         """
