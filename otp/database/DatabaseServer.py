@@ -29,7 +29,7 @@ class DatabaseServer(NetworkConnector):
     def handleDcObjectTypes(self):
         dcObjectType = 0
 
-        # Check all base classes in our DC file for the "DcObjectType" field.
+        # Check all base classes in our DC file for the "DcObjectType" field:
         for n in range(dcFile.getNumClasses()):
             dcClass = dcFile.getClass(n)
             for i in range(dcClass.getNumFields()):
@@ -53,9 +53,6 @@ class DatabaseServer(NetworkConnector):
                     # Check the parent of this parent:
                     isDcObject = isInheritedDcObjectClass(parent)
 
-                if not isDcObject:
-                    continue
-
             return isDcObject
 
         # Now we check for any classes in our DC file that might have
@@ -63,13 +60,11 @@ class DatabaseServer(NetworkConnector):
         for n in range(dcFile.getNumClasses()):
             dcClass = dcFile.getClass(n)
             isDcObject = isInheritedDcObjectClass(dcClass)
-            if not isDcObject:
-                continue
-
-            # Found one! Increment dcObjectType and add it to our dictionaries:
-            dcObjectType += 1
-            self.dclassesByObjectType[dcObjectType] = dcClass
-            self.objectTypesByName[dcClass.getName()] = dcObjectType
+            if isDcObject:
+                # Found one! Increment dcObjectType and add it to our dictionaries:
+                dcObjectType += 1
+                self.dclassesByObjectType[dcObjectType] = dcClass
+                self.objectTypesByName[dcClass.getName()] = dcObjectType
 
     def createHandledDatagram(self, msgType):
         """
