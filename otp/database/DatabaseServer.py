@@ -23,9 +23,6 @@ class DatabaseServer(NetworkConnector):
         self.objectTypesByName = {}
         self.handleDcObjectTypes()
 
-        print(self.dclassesByObjectType)
-        print(self.objectTypesByName)
-
         # Subscribe to our control channel:
         self.subscribeChannel(self.control)
 
