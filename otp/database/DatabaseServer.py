@@ -179,6 +179,22 @@ class DatabaseServer(NetworkConnector):
             # Unpack the value for this field:
             dcPacker = DCPacker()
             dcPacker.setUnpackData(dgi.getBlob())
+            dcPacker.beginUnpack(dcField)
+            value = dcField.unpackArgs(dcPacker)
+            if not dcPacker.endUnpack():
+                # We were unable to unpack this field! Warn the user:
+                self.notify.warning('Failed to unpack field: %s' % fieldName)
+
+                # Send a response message to our sender informing them we have failed here:
+                datagram = self.createRoutedDatagram(MsgTypes.DBSERVER_CREATE_STORED_OBJECT_RESP, [channel])
+                datagram.addUint32(context)
+                datagram.addUint8(1)
+                self.sendUpstream(datagram)
+
+                # We're done here:
+                return
+
+            values[fieldName] = value
 
     @staticmethod
     def createFromConfig(serviceConfig):
