@@ -1,5 +1,8 @@
+from panda3d.direct import DCPacker
+
 from direct.distributed.PyDatagram import PyDatagram
 from direct.distributed.PyDatagramIterator import PyDatagramIterator
+from direct.directnotify import DirectNotifyGlobal
 
 from otp.net.NetworkConnector import NetworkConnector
 from otp.database import DBBackendFactory
@@ -7,6 +10,7 @@ from otp.core import MsgTypes
 
 
 class DatabaseServer(NetworkConnector):
+    notify = DirectNotifyGlobal.directNotify.newCategory('DatabaseServer')
 
     def __init__(self, control, generateMin, generateMax, backendConfig, mdHost, mdPort):
         NetworkConnector.__init__(self, mdHost, mdPort)
@@ -66,6 +70,20 @@ class DatabaseServer(NetworkConnector):
                 self.dclassesByObjectType[dcObjectType] = dcClass
                 self.objectTypesByName[dcClass.getName()] = dcObjectType
 
+    def createRoutedDatagram(self, msgType, channels=[]):
+        """
+        Creates a datagram that will be routed by the Message Director.
+        """
+        datagram = PyDatagram()
+        datagram.addUint8(len(channels))  # Number of channels.
+
+        for channel in channels:
+            datagram.addUint64(channel)  # Destination channel.
+
+        datagram.addUint64(self.control)  # Source channel.
+        datagram.addUint16(msgType)  # Message type.
+        return datagram
+
     def createHandledDatagram(self, msgType):
         """
         Creates a datagram that will be handled on the Message Director.
@@ -103,7 +121,64 @@ class DatabaseServer(NetworkConnector):
             self.handleCreateStoredObject(dgi, channel)
 
     def handleCreateStoredObject(self, dgi, channel):
-        raise NotImplementedError
+        # Get the context:
+        context = dgi.getUint32()
+
+        # This value is unused:
+        _ = dgi.getString()
+
+        # Get the object type:
+        objectType = dgi.getUint16()
+
+        # Get the number of fields & packed values:
+        numValues = dgi.getUint16()
+
+        # Get the DC class from the object type:
+        dcClass = self.dclassesByObjectType.get(objectType)
+        if not dcClass:
+            # This is an invalid object type! Warn the user:
+            self.notify.warning('Invalid object type in DBSERVER_CREATE_STORED_OBJECT: %s' % objectType)
+
+            # Send a response message to our sender informing them we have failed here:
+            datagram = self.createRoutedDatagram(MsgTypes.DBSERVER_CREATE_STORED_OBJECT_RESP, [channel])
+            datagram.addUint32(context)
+            datagram.addUint8(1)
+            self.sendUpstream(datagram)
+
+            # We're done here:
+            return
+
+        # Dictionary for our field/value pairs:
+        values = {}
+
+        # Get our field names:
+        for _ in range(numValues):
+            # Get the string:
+            fieldName = dgi.getString()
+
+            # Add it to our values dictionary:
+            values[fieldName] = None
+
+        # Get our field values:
+        for fieldName in values.keys():
+            # Get our DC field:
+            dcField = dcClass.getFieldByName(fieldName)
+            if not dcField:
+                # This is an invalid field name! Warn the user:
+                self.notify.warning('Invalid field %s for class %s in DBSERVER_CREATE_STORED_OBJECT!' % (fieldName, dcClass.getName()))
+
+                # Send a response message to our sender informing them we have failed here:
+                datagram = self.createRoutedDatagram(MsgTypes.DBSERVER_CREATE_STORED_OBJECT_RESP, [channel])
+                datagram.addUint32(context)
+                datagram.addUint8(1)
+                self.sendUpstream(datagram)
+
+                # We're done here:
+                return
+
+            # Unpack the value for this field:
+            dcPacker = DCPacker()
+            dcPacker.setUnpackData(dgi.getBlob())
 
     @staticmethod
     def createFromConfig(serviceConfig):
