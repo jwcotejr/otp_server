@@ -212,9 +212,10 @@ class DatabaseServer(NetworkConnector):
                 # We're done here:
                 return
 
-            # If the field is DcObjectType, set its value to the name of the DC class:
+            # If the field is "DcObjectType", set its value to the name of the DC class:
             if dcField.getName() == "DcObjectType":
                 values[dcField.getName()] = dcClass.getName()
+                continue
 
             # Check if the field is required:
             if not dcField.isRequired():
