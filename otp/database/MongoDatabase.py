@@ -36,7 +36,7 @@ class MongoDatabase(DatabaseBackend):
         doId = obj.get('seq')
         return doId
 
-    def createNewObject(self, dcClass, fields):
+    def handleCreate(self, dcClass, fields):
         doId = self.assignDoId()
         self.mongodb.otp.objects.insert_one({
             '_id': doId,
