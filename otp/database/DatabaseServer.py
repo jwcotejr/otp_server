@@ -140,10 +140,7 @@ class DatabaseServer(NetworkConnector):
             self.notify.warning('Invalid object type in DBSERVER_CREATE_STORED_OBJECT: %s' % objectType)
 
             # Send a response message to our sender informing them we have failed here:
-            datagram = self.createRoutedDatagram(MsgTypes.DBSERVER_CREATE_STORED_OBJECT_RESP, [channel])
-            datagram.addUint32(context)
-            datagram.addUint8(1)
-            self.sendUpstream(datagram)
+            self.sendCreateStoredObjectResp(channel, context, False)
 
             # We're done here:
             return
@@ -168,10 +165,7 @@ class DatabaseServer(NetworkConnector):
                 self.notify.warning('Invalid field %s for class %s in DBSERVER_CREATE_STORED_OBJECT!' % (fieldName, dcClass.getName()))
 
                 # Send a response message to our sender informing them we have failed here:
-                datagram = self.createRoutedDatagram(MsgTypes.DBSERVER_CREATE_STORED_OBJECT_RESP, [channel])
-                datagram.addUint32(context)
-                datagram.addUint8(1)
-                self.sendUpstream(datagram)
+                self.sendCreateStoredObjectResp(channel, context, False)
 
                 # We're done here:
                 return
@@ -186,15 +180,30 @@ class DatabaseServer(NetworkConnector):
                 self.notify.warning('Failed to unpack field: %s' % fieldName)
 
                 # Send a response message to our sender informing them we have failed here:
-                datagram = self.createRoutedDatagram(MsgTypes.DBSERVER_CREATE_STORED_OBJECT_RESP, [channel])
-                datagram.addUint32(context)
-                datagram.addUint8(1)
-                self.sendUpstream(datagram)
+                self.sendCreateStoredObjectResp(channel, context, False)
 
                 # We're done here:
                 return
 
             values[fieldName] = value
+
+    def sendCreateStoredObjectResp(self, channel, context, success, doId=0):
+        # Create our response datagram:
+        datagram = self.createRoutedDatagram(MsgTypes.DBSERVER_CREATE_STORED_OBJECT_RESP, [channel])
+
+        # Add our context:
+        datagram.addUint32(context)
+
+        # If this operation was successful, we send a return code of 0.
+        # Otherwise, we send a return code of 1:
+        datagram.addUint8(0 if success else 1)
+
+        # If this operation was successful, we also send the doId of the created object:
+        if success:
+            datagram.addUint32(doId)
+
+        # Send the datagram to the Message Director:
+        self.sendUpstream(datagram)
 
     @staticmethod
     def createFromConfig(serviceConfig):
