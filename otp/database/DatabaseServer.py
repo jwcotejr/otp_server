@@ -99,6 +99,11 @@ class DatabaseServer(NetworkConnector):
         msgType = dgi.getUint16()
 
         # Handle the message:
+        if msgType == MsgTypes.DBSERVER_CREATE_STORED_OBJECT:
+            self.handleCreateStoredObject(dgi, channel)
+
+    def handleCreateStoredObject(self, dgi, channel):
+        raise NotImplementedError
 
     @staticmethod
     def createFromConfig(serviceConfig):
