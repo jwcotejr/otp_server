@@ -26,6 +26,25 @@ class MongoDatabase(DatabaseBackend):
                 'seq': self.getMinId()
             })
 
+    def assignDoId(self):
+        obj = self.mongodb.otp.globals.find_one_and_update(
+            {'_id': 'doid'},  # Filter.
+            {'$inc': {'seq': 1}},  # Update.
+            {'returnOriginal': False}  # Options.
+        )
+
+        doId = obj.get('seq')
+        return doId
+
+    def createNewObject(self, dcClass, fields):
+        doId = self.assignDoId()
+        self.mongodb.otp.objects.insert_one({
+            '_id': doId,
+            'dclass': dcClass.getName(),
+            'fields': fields
+        })
+        return doId
+
     @staticmethod
     def createFromConfig(backendConfig, generateMin, generateMax):
         # Get our config values:
