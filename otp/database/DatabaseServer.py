@@ -201,10 +201,6 @@ class DatabaseServer(NetworkConnector):
             if dcField.asMolecularField() is not None:
                 continue
 
-            # Check if the field is required:
-            if not dcField.isRequired():
-                continue
-
             # We should not be expecting a non-db field:
             if not dcField.isDb():
                 # Warn the user:
@@ -215,6 +211,10 @@ class DatabaseServer(NetworkConnector):
 
                 # We're done here:
                 return
+
+            # Check if the field is required:
+            if not dcField.isRequired():
+                continue
 
             # Skip the field if it doesn't have a default value:
             if not dcField.hasDefaultValue():
