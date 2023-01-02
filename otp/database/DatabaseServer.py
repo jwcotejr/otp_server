@@ -185,7 +185,60 @@ class DatabaseServer(NetworkConnector):
                 # We're done here:
                 return
 
+            # Add the unpacked value for this field to our dictionary:
             values[fieldName] = value
+
+        # Iterate through this DC class's inherited fields:
+        for n in range(dcClass.getNumInheritedFields()):
+            # Get the inherited field:
+            dcField = dcClass.getInheritedField(n)
+
+            # If this DC field is already in our values dictionary, we can skip over it:
+            if dcField.getName() in values.keys():
+                continue
+
+            # Skip the field if it is molecular:
+            if dcField.asMolecularField() is not None:
+                continue
+
+            # Check if the field is required:
+            if not dcField.isRequired():
+                continue
+
+            # We should not be expecting a non-db field:
+            if not dcField.isDb():
+                # Warn the user:
+                self.notify.warning('Non-DB field in DBSERVER_CREATE_STORED_OBJECT: %s' % dcField.getName())
+
+                # Send a response message to our sender informing them we have failed here:
+                self.sendCreateStoredObjectResp(channel, context, False)
+
+                # We're done here:
+                return
+
+            # Skip the field if it doesn't have a default value:
+            if not dcField.hasDefaultValue():
+                # Warn the user:
+                self.notify.warning('No default value for field %s in DBSERVER_CREATE_STORED_OBJECT!' % dcField.getName())
+                continue
+
+            # Get the default value of the field:
+            dcPacker = DCPacker()
+            dcPacker.setUnpackData(dcField.getDefaultValue())
+            dcPacker.beginUnpack(dcField)
+            value = dcField.unpackArgs(dcPacker)
+            if not dcPacker.endUnpack():
+                # We were unable to unpack the default value for this field! Warn the user:
+                self.notify.warning('Failed to unpack default value for field: %s' % dcField.getName())
+
+                # Send a response message to our sender informing them we have failed here:
+                self.sendCreateStoredObjectResp(channel, context, False)
+
+                # We're done here:
+                return
+
+            # Add the unpacked default value of the field to our dictionary:
+            values[dcField.getName()] = value
 
     def sendCreateStoredObjectResp(self, channel, context, success, doId=0):
         # Create our response datagram:
