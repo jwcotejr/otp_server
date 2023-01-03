@@ -245,6 +245,12 @@ class DatabaseServer(NetworkConnector):
             # Add the unpacked default value of the field to our dictionary:
             values[dcField.getName()] = value
 
+        # Create the object in our database, and get the resulting doId:
+        doId = self.backend.handleCreate(dcClass, values)
+
+        # Send a response message to our sender informing them the operation has succeeded:
+        self.sendCreateStoredObjectResp(channel, context, True, doId)
+
     def sendCreateStoredObjectResp(self, channel, context, success, doId=0):
         # Create our response datagram:
         datagram = self.createRoutedDatagram(MsgTypes.DBSERVER_CREATE_STORED_OBJECT_RESP, [channel])
