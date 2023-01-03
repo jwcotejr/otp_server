@@ -21,6 +21,7 @@ class NetworkDCFile(DCFile):
         Adds a DC file name to our list to be read.
         """
         if dcFileName not in self.__dcFileNames:
+            # Add the DC file to our list:
             self.__dcFileNames.append(dcFileName)
 
     def readDcFiles(self):
@@ -28,37 +29,38 @@ class NetworkDCFile(DCFile):
         Reads all DC files in our list into the DCFile object.
         """
         for dcFileName in self.__dcFileNames:
+            # Read the DC file:
             self.read(dcFileName)
 
         # Handle our DcObjectTypes:
-        self.handleDcObjectTypes()
+        self.__handleDcObjectTypes()
 
-    def handleDcObjectTypes(self):
+    def __handleDcObjectTypes(self):
         dcObjectType = 0
 
         # Check all base classes in our DC file for the "DcObjectType" field:
         for n in range(self.getNumClasses()):
             dcClass = self.getClass(n)
             for i in range(dcClass.getNumFields()):
-                field = dcClass.getField(i)
-                if field.getName() == "DcObjectType":
+                dcField = dcClass.getField(i)
+                if dcField.getName() == "DcObjectType":
                     # Found one! Increment dcObjectType and add it to our dictionaries:
                     dcObjectType += 1
                     self.__dclassesByObjectType[dcObjectType] = dcClass
                     self.__objectTypesByName[dcClass.getName()] = dcObjectType
 
-        def isInheritedDcObjectClass(dcClass):
+        def __isInheritedDcObjectClass(dcClass):
             """
             If a class in our DC file has a parent class, check if the parent
             class is in our DcObjectType dictionaries, and return the result.
             """
             isDcObject = False
             for n in range(dcClass.getNumParents()):
-                parent = dcClass.getParent(n)
-                isDcObject = parent.getName() in self.__objectTypesByName
-                if not isDcObject and parent.getNumParents() > 0:
+                dcParent = dcClass.getParent(n)
+                isDcObject = dcParent.getName() in self.__objectTypesByName
+                if not isDcObject and dcParent.getNumParents() > 0:
                     # Check the parent of this parent:
-                    isDcObject = isInheritedDcObjectClass(parent)
+                    isDcObject = __isInheritedDcObjectClass(dcParent)
 
             return isDcObject
 
@@ -66,7 +68,7 @@ class NetworkDCFile(DCFile):
         # inherited from a class that is in our DcObjectType dictionaries:
         for n in range(self.getNumClasses()):
             dcClass = self.getClass(n)
-            isDcObject = isInheritedDcObjectClass(dcClass)
+            isDcObject = __isInheritedDcObjectClass(dcClass)
             if isDcObject:
                 # Found one! Increment dcObjectType and add it to our dictionaries:
                 dcObjectType += 1
