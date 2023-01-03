@@ -24,6 +24,9 @@ class Client(NetworkClient):
         self.subscribeChannel(self.channel)
         self.subscribeChannel(MsgTypes.CHANNEL_CLIENT_BROADCAST)
 
+    def getChannel(self):
+        return self.channel
+
     def handleClientDatagram(self, datagram):
         """
         Handles a datagram coming from the client.

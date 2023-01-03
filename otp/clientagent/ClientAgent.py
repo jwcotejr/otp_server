@@ -1,6 +1,7 @@
 from panda3d.core import UniqueIdAllocator
 
 from otp.net.NetworkAcceptor import NetworkAcceptor
+from otp.database.DatabaseInterface import DatabaseInterface
 from otp.clientagent.ToontownClient import ToontownClient
 
 
@@ -24,8 +25,14 @@ class ClientAgent(NetworkAcceptor):
         self.mdHost = mdHost
         self.mdPort = mdPort
 
+        # Create our database interface:
+        self.dbInterface = DatabaseInterface(self)
+
         # A dictionary of connections to clients:
-        self.clients = {}
+        self.clientsByConnection = {}
+
+        # A dictionary of channels to clients:
+        self.clientsByChannel = {}
 
     def getDcHash(self):
         return self.dcHash
@@ -42,7 +49,8 @@ class ClientAgent(NetworkAcceptor):
     def createClient(self, connection):
         channel = self.allocateChannel()
         client = ToontownClient(self, connection, channel, self.mdHost, self.mdPort)
-        self.clients[connection] = client
+        self.clientsByConnection[connection] = client
+        self.clientsByChannel[channel] = client
 
     def removeClient(self, client):
         # First, check to see if the client is connected:
@@ -51,14 +59,15 @@ class ClientAgent(NetworkAcceptor):
 
         self.connectionReader.removeConnection(client.getConnection())
         self.connectionManager.closeConnection(client.getConnection())
-        del self.clients[client.getConnection()]
+        del self.clientsByConnection[client.getConnection()]
+        del self.clientsByChannel[client.getChannel()]
 
     def handleClientDatagram(self, datagram):
         """
         Handles a datagram sent by a client.
         """
         connection = datagram.getConnection()
-        self.clients[connection].handleClientDatagram(datagram)
+        self.clientsByConnection[connection].handleClientDatagram(datagram)
 
     @staticmethod
     def createFromConfig(serviceConfig):

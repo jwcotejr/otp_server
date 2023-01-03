@@ -8,8 +8,8 @@ from otp.core import MsgTypes
 class DatabaseInterface:
     notify = DirectNotifyGlobal.directNotify.newCategory('DatabaseInterface')
 
-    def __init__(self, client):
-        self.client = client
+    def __init__(self, acceptor):
+        self.acceptor = acceptor
 
         # Our current context:
         self.__contextCounter = 0
