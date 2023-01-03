@@ -47,16 +47,17 @@ class DatabaseInterface:
         # Pack up/count valid fields:
         values = {}
         for fieldName, value in fields.items():
+            # Get our DC field:
             dcField = dcClass.getFieldByName(fieldName)
             if not dcField:
                 # This is an invalid field name! Throw an error:
                 self.notify.error('Invalid field %s for class %s in createObject!' % (fieldName, dcClass.getName()))
 
-            dcPacker = DCPacker()
-            dcPacker.beginPack(dcField)
-            dcField.packArgs(dcPacker, value)
-            dcPacker.endPack()
-            values[fieldName] = dcPacker
+            fieldPacker = DCPacker()
+            fieldPacker.beginPack(dcField)
+            dcField.packArgs(fieldPacker, value)
+            fieldPacker.endPack()
+            values[fieldName] = fieldPacker
 
         # Now generate and send the datagram:
         datagram = self.client.createRoutedDatagram(MsgTypes.DBSERVER_CREATE_STORED_OBJECT, [control])
