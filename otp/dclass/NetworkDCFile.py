@@ -74,3 +74,9 @@ class NetworkDCFile(DCFile):
                 dcObjectType += 1
                 self.__dclassesByObjectType[dcObjectType] = dcClass
                 self.__objectTypesByName[dcClass.getName()] = dcObjectType
+
+    def getClassByObjectType(self, objectType):
+        """
+        Returns the DC class corresponding to the provided object type, if any.
+        """
+        return self.__dclassesByObjectType.get(objectType)

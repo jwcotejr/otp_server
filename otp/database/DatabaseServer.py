@@ -89,7 +89,7 @@ class DatabaseServer(NetworkConnector):
         numValues = dgi.getUint16()
 
         # Get the DC class from the object type:
-        dcClass = self.dclassesByObjectType.get(objectType)
+        dcClass = dcFile.getClassByObjectType(objectType)
         if not dcClass:
             # This is an invalid object type! Warn the user:
             self.notify.warning('Invalid object type in DBSERVER_CREATE_STORED_OBJECT: %s' % objectType)
