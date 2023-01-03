@@ -16,3 +16,7 @@ class DatabaseBackend:
         Returns the maximum database object ID.
         """
         return self.generateMax
+
+    def handleCreate(self, dcClass, fields):
+        # Must be overridden by subclass.
+        raise NotImplementedError
