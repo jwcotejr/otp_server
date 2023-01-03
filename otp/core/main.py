@@ -1,7 +1,6 @@
-from panda3d.direct import DCFile
-
 from direct.task.TaskManagerGlobal import taskMgr
 
+from otp.dclass.NetworkDCFile import NetworkDCFile
 from otp.config.Config import Config
 from otp.messagedirector.MessageDirector import MessageDirector
 from otp.core import ServiceFactory
@@ -17,11 +16,14 @@ builtins.taskMgr = taskMgr
 builtins.config = Config('config/config.json')
 
 # Create our global DC file:
-builtins.dcFile = DCFile()
+builtins.dcFile = NetworkDCFile()
 
-# Now, read our DC files specified in the config into the global DC file:
+# Add our DC files specified in the config into the global DC file:
 for path in config.get('general', {}).get('dc-files', []):
     dcFile.read(path)
+
+# Read our DC files:
+dcFile.readDcFiles()
 
 # If the Message Director is defined in the config, create it first:
 mdConfig = config.get('messagedirector', {})
