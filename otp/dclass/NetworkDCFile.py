@@ -37,8 +37,8 @@ class NetworkDCFile(DCFile):
         dcObjectType = 0
 
         # Check all base classes in our DC file for the "DcObjectType" field:
-        for n in range(dcFile.getNumClasses()):
-            dcClass = dcFile.getClass(n)
+        for n in range(self.getNumClasses()):
+            dcClass = self.getClass(n)
             for i in range(dcClass.getNumFields()):
                 field = dcClass.getField(i)
                 if field.getName() == "DcObjectType":
@@ -64,8 +64,8 @@ class NetworkDCFile(DCFile):
 
         # Now we check for any classes in our DC file that might have
         # inherited from a class that is in our DcObjectType dictionaries:
-        for n in range(dcFile.getNumClasses()):
-            dcClass = dcFile.getClass(n)
+        for n in range(self.getNumClasses()):
+            dcClass = self.getClass(n)
             isDcObject = isInheritedDcObjectClass(dcClass)
             if isDcObject:
                 # Found one! Increment dcObjectType and add it to our dictionaries:

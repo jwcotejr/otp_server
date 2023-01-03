@@ -20,7 +20,7 @@ builtins.dcFile = NetworkDCFile()
 
 # Add our DC files specified in the config into the global DC file:
 for path in config.get('general', {}).get('dc-files', []):
-    dcFile.read(path)
+    dcFile.addDcFile(path)
 
 # Read our DC files:
 dcFile.readDcFiles()
