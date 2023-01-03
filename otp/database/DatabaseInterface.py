@@ -34,9 +34,9 @@ class DatabaseInterface:
         callback will be called with callback(doId) if specified. On failure, doId is 0. (Optional)
         """
 
-        # Save the context:
-        ctx = self.getContext()
-        self._callbacks[ctx] = callback
+        # Save the callback:
+        context = self.getContext()
+        self._callbacks[context] = callback
 
         # Get the DC class from the object type:
         dcClass = dcFile.getClassByObjectType(objectType)
@@ -45,7 +45,7 @@ class DatabaseInterface:
             self.notify.error('Invalid object type in createObject: %s' % objectType)
 
         # Pack up/count valid fields:
-        packedFields = {}
+        values = {}
         for fieldName, value in fields.items():
             dcField = dcClass.getFieldByName(fieldName)
             if not dcField:
@@ -56,18 +56,18 @@ class DatabaseInterface:
             dcPacker.beginPack(dcField)
             dcField.packArgs(dcPacker, value)
             dcPacker.endPack()
-            packedFields[fieldName] = dcPacker
+            values[fieldName] = dcPacker
 
         # Now generate and send the datagram:
         datagram = self.client.createRoutedDatagram(MsgTypes.DBSERVER_CREATE_STORED_OBJECT, [control])
-        datagram.addUint32(ctx)
+        datagram.addUint32(context)
         datagram.addString('')
         datagram.addUint16(objectType)
-        datagram.addUint16(len(packedFields))
-        for fieldName in packedFields.keys():
-            datagram.addString(fieldName)
+        datagram.addUint16(len(values))
+        for field in values.keys():
+            datagram.addString(field)
 
-        for packedValue in packedFields.values():
-            datagram.addBlob(packedValue.getBytes())
+        for value in values.values():
+            datagram.addBlob(value.getBytes())
 
         self.client.sendUpstream(datagram)
