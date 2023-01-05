@@ -2,6 +2,7 @@ from panda3d.core import UniqueIdAllocator
 
 from otp.net.NetworkAcceptor import NetworkAcceptor
 from otp.database.DatabaseInterface import DatabaseInterface
+from otp.clientagent.ClientAccountManager import ClientAccountManager
 from otp.clientagent.ToontownClient import ToontownClient
 
 
@@ -27,6 +28,9 @@ class ClientAgent(NetworkAcceptor):
 
         # Create our database interface:
         self.dbInterface = DatabaseInterface(self)
+
+        # Create our client account manager:
+        self.accountManager = ClientAccountManager(self)
 
         # A dictionary of connections to clients:
         self.clientsByConnection = {}
