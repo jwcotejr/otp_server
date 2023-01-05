@@ -6,8 +6,8 @@ class NetworkDCFile(DCFile):
     Extends Panda3D's DCFile object to add support for handling DcObjectTypes.
     """
 
-    def __init__(self):
-        DCFile.__init__(self)
+    def __init__(self, *args, **kwargs):
+        DCFile.__init__(self, *args, **kwargs)
 
         # Our DC file names to read:
         self.__dcFileNames = []
