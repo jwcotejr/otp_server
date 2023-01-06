@@ -74,6 +74,8 @@ class DatabaseServer(NetworkConnector):
         # Handle the message:
         if msgType == MsgTypes.DBSERVER_CREATE_STORED_OBJECT:
             self.handleCreateStoredObject(dgi, channel)
+        elif msgType == MsgTypes.DBSERVER_GET_STORED_VALUES:
+            self.handleGetStoredValues(dgi, channel)
 
     def handleCreateStoredObject(self, dgi, channel):
         # Get the context:
@@ -223,6 +225,22 @@ class DatabaseServer(NetworkConnector):
 
         # Send the datagram to the Message Director:
         self.sendUpstream(datagram)
+
+    def handleGetStoredValues(self, dgi, channel):
+        # Get the context:
+        context = dgi.getUint32()
+
+        # Get the doId of the object:
+        doId = dgi.getUint32()
+
+        # Get the number of fields:
+        numFields = dgi.getUint16()
+
+        # Get the field names:
+        fieldNames = []
+        for _ in range(numFields):
+            fieldName = dgi.getString()
+            fieldNames.append(fieldName)
 
     @staticmethod
     def createFromConfig(serviceConfig):

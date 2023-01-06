@@ -1,9 +1,12 @@
+from direct.directnotify import DirectNotifyGlobal
+
 from otp.database.DatabaseBackend import DatabaseBackend
 
 from pymongo import MongoClient, uri_parser
 
 
 class MongoDatabase(DatabaseBackend):
+    notify = DirectNotifyGlobal.directNotify.newCategory('MongoDatabase')
 
     def __init__(self, server, generateMin, generateMax):
         DatabaseBackend.__init__(self, generateMin, generateMax)
@@ -44,6 +47,14 @@ class MongoDatabase(DatabaseBackend):
             'fields': fields
         })
         return doId
+
+    def handleGet(self, doId):
+        obj = self.mongodb.otp.objects.find_one({'_id': doId})
+        if not obj:
+            self.notify.warning('Got queried for nonexistent object with doId %s' % doId)
+            return
+
+        return obj
 
     @staticmethod
     def createFromConfig(backendConfig, generateMin, generateMax):

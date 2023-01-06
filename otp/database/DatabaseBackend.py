@@ -20,3 +20,7 @@ class DatabaseBackend:
     def handleCreate(self, dcClass, fields):
         # Must be overridden by subclass.
         raise NotImplementedError
+
+    def handleGet(self, doId):
+        # Must be overridden by subclass.
+        raise NotImplementedError
