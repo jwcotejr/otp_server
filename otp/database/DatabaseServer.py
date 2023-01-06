@@ -242,6 +242,43 @@ class DatabaseServer(NetworkConnector):
             fieldName = dgi.getString()
             fieldNames.append(fieldName)
 
+    def sendGetStoredValuesResp(self, channel, context, doId, numFields, fieldNames, success, values=[], found=[]):
+        # Create our response datagram:
+        datagram = self.createRoutedDatagram(MsgTypes.DBSERVER_GET_STORED_VALUES_RESP, [channel])
+
+        # Add our context:
+        datagram.addUint32(context)
+
+        # Add the doId of the object we ran this query on:
+        datagram.addUint32(doId)
+
+        # Add the number of fields we were querying for:
+        datagram.addUint16(numFields)
+
+        # All all of our field names:
+        for i in range(numFields):
+            fieldName = fieldNames[i]
+            datagram.addString(fieldName)
+
+        # If this operation was successful, we send a return code of 0.
+        # Otherwise, we send a return code of 1:
+        datagram.addUint8(0 if success else 1)
+
+        # We only need to add the following if this query was successful:
+        if success:
+            # Add our field values:
+            for i in range(numFields):
+                value = values[i]
+                datagram.addString(value)
+
+            # Add our found values:
+            for i in range(numFields):
+                foundValue = found[i]
+                datagram.addUint8(foundValue)
+
+        # Send the datagram to the Message Director:
+        self.sendUpstream(datagram)
+
     @staticmethod
     def createFromConfig(serviceConfig):
         # Do we have a Message Director?
