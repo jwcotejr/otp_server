@@ -255,7 +255,7 @@ class DatabaseServer(NetworkConnector):
         # Add the number of fields we were querying for:
         datagram.addUint16(numFields)
 
-        # All all of our field names:
+        # Add all of our field names:
         for i in range(numFields):
             fieldName = fieldNames[i]
             datagram.addString(fieldName)
