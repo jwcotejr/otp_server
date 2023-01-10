@@ -44,7 +44,16 @@ class Client(NetworkClient):
         """
         Handles a datagram coming from the Message Director.
         """
-        raise NotImplementedError
+        dgi = PyDatagramIterator(datagram)
+
+        # Get the source channel from the datagram:
+        channel = dgi.getUint64()
+
+        # Get the message type:
+        msgType = dgi.getUint16()
+
+        # Handle the message:
+        self.acceptor.dbInterface.handleServerDatagram(msgType, dgi)
 
     def createRoutedDatagram(self, msgType, channels=[]):
         """

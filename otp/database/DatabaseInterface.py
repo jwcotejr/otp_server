@@ -24,7 +24,7 @@ class DatabaseInterface:
         self.__contextCounter = (self.__contextCounter + 1) & 0xFFFFFFFF
         return self.__contextCounter
 
-    def createObject(self, sender, control, objectType, fields={}, callback=None):
+    def createStoredObject(self, sender, control, objectType, fields={}, callback=None):
         """
         Creates an object of the specified type in the specified database.
 
@@ -43,7 +43,7 @@ class DatabaseInterface:
         dcClass = dcFile.getClassByObjectType(objectType)
         if not dcClass:
             # This is an invalid object type! Throw an error:
-            self.notify.error('Invalid object type in createObject: %s' % objectType)
+            self.notify.error('Invalid object type in createStoredObject: %s' % objectType)
 
         # Pack up/count valid fields:
         values = {}
@@ -52,7 +52,7 @@ class DatabaseInterface:
             dcField = dcClass.getFieldByName(fieldName)
             if not dcField:
                 # This is an invalid field name! Throw an error:
-                self.notify.error('Invalid field %s for class %s in createObject!' % (fieldName, dcClass.getName()))
+                self.notify.error('Invalid field %s for class %s in createStoredObject!' % (fieldName, dcClass.getName()))
 
             fieldPacker = DCPacker()
             fieldPacker.beginPack(dcField)
@@ -73,3 +73,24 @@ class DatabaseInterface:
             datagram.addBlob(value.getBytes())
 
         sender.sendUpstream(datagram)
+
+    def handleCreateStoredObjectResp(self, dgi):
+        context = dgi.getUint32()
+        retCode = dgi.getUint8()
+        if retCode != 0:
+            doId = 0
+        else:
+            doId = dgi.getUint32()
+
+        if context not in self._callbacks:
+            self.notify.warning('Got DBSERVER_CREATE_STORED_OBJECT_RESP with invalid context %s' % context)
+            return
+
+        if self._callbacks[context]:
+            self._callbacks[context](doId)
+
+        del self._callbacks[context]
+
+    def handleServerDatagram(self, msgType, dgi):
+        if msgType == MsgTypes.DBSERVER_CREATE_STORED_OBJECT_RESP:
+            self.handleCreateStoredObjectResp(dgi)
