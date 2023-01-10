@@ -289,13 +289,41 @@ class DatabaseServer(NetworkConnector):
             dcField = dcClass.getFieldByName(fieldName)
             if not dcField:
                 # This is an invalid field name! Warn the user:
-                self.notify.warning('Invalid field %s for class %s in DBSERVER_GET_STORED_VALUES!' % (fieldName, dcClass.getName()))
+                self.notify.warning('Invalid field %s for class %s in DBSERVER_GET_STORED_VALUES!' % (
+                    fieldName, dcClass.getName()))
 
                 # Send a response message to our sender informing them we have failed here:
                 self.sendGetStoredValuesResp(channel, context, doId, numFields, fieldNames, False)
 
                 # We're done here:
                 return
+
+            # Pack the value if it exists:
+            fields = obj.get('fields', {})
+            value = fields.get(fieldName)
+            if value:
+                fieldPacker = DCPacker()
+                fieldPacker.beginPack(dcField)
+                dcField.packArgs(fieldPacker, value)
+                if not fieldPacker.endPack():
+                    # We were unable to pack this field! Warn the user:
+                    self.notify.warning('Failed to pack value %s for field %s in DBSERVER_GET_STORED_VALUES!' % (
+                        value, dcField.getName()))
+
+                    # Send a response message to our sender informing them we have failed here:
+                    self.sendGetStoredValuesResp(channel, context, doId, numFields, fieldNames, False)
+
+                    # We're done here:
+                    return
+
+                values.append(fieldPacker.getBytes())
+                found.append(1)
+            else:
+                values.append(b'')
+                found.append(0)
+
+        # Send a response message to our sender informing them the operation has succeeded:
+        self.sendGetStoredValuesResp(channel, context, doId, numFields, fieldNames, True, values, found)
 
     def sendGetStoredValuesResp(self, channel, context, doId, numFields, fieldNames, success, values=[], found=[]):
         # Create our response datagram:
@@ -324,7 +352,7 @@ class DatabaseServer(NetworkConnector):
             # Add our field values:
             for i in range(numFields):
                 value = values[i]
-                datagram.addString(value)
+                datagram.addBlob(value)
 
             # Add our found values:
             for i in range(numFields):
