@@ -242,6 +242,61 @@ class DatabaseServer(NetworkConnector):
             fieldName = dgi.getString()
             fieldNames.append(fieldName)
 
+        # Get the object from the database:
+        obj = self.backend.handleGet(doId)
+        if not obj:
+            # No object with this doId exists in the database! Warn the user:
+            self.notify.warning('Got DBSERVER_GET_STORED_VALUES for nonexistent object with doId %s' % doId)
+
+            # Send a response message to our sender informing them we have failed here:
+            self.sendGetStoredValuesResp(channel, context, doId, numFields, fieldNames, False)
+
+            # We're done here:
+            return
+
+        # Get the DC class from the object:
+        className = obj.get('dclass')
+        if not className:
+            # The database entry for this object does not define a dclass name! Warn the user:
+            self.notify.warning('Got DBSERVER_GET_STORED_VALUES for doId %s that does not define a class name!' % doId)
+
+            # Send a response message to our sender informing them we have failed here:
+            self.sendGetStoredValuesResp(channel, context, doId, numFields, fieldNames, False)
+
+            # We're done here:
+            return
+
+        dcClass = dcFile.getClassByName(className)
+        if not dcClass:
+            # Unable to find a matching DC class with this name! Perhaps it doesn't
+            # exist in our DC file, or the database entry is invalid? Warn the user:
+            self.notify.warning('Got DBSERVER_GET_STORED_VALUES for doId %s with invalid class name %s' % (
+                doId, className))
+
+            # Send a response message to our sender informing them we have failed here:
+            self.sendGetStoredValuesResp(channel, context, doId, numFields, fieldNames, False)
+
+            # We're done here:
+            return
+
+        # Lists for the field values, and whether they were found in the database or not:
+        values = []
+        found = []
+
+        # Get the field values:
+        for fieldName in fieldNames:
+            # Get our DC field:
+            dcField = dcClass.getFieldByName(fieldName)
+            if not dcField:
+                # This is an invalid field name! Warn the user:
+                self.notify.warning('Invalid field %s for class %s in DBSERVER_GET_STORED_VALUES!' % (fieldName, dcClass.getName()))
+
+                # Send a response message to our sender informing them we have failed here:
+                self.sendGetStoredValuesResp(channel, context, doId, numFields, fieldNames, False)
+
+                # We're done here:
+                return
+
     def sendGetStoredValuesResp(self, channel, context, doId, numFields, fieldNames, success, values=[], found=[]):
         # Create our response datagram:
         datagram = self.createRoutedDatagram(MsgTypes.DBSERVER_GET_STORED_VALUES_RESP, [channel])
