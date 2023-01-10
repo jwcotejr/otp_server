@@ -284,6 +284,7 @@ class DatabaseServer(NetworkConnector):
         found = []
 
         # Get the field values:
+        fields = obj.get('fields', {})
         for fieldName in fieldNames:
             # Get our DC field:
             dcField = dcClass.getFieldByName(fieldName)
@@ -299,7 +300,6 @@ class DatabaseServer(NetworkConnector):
                 return
 
             # Pack the value if it exists:
-            fields = obj.get('fields', {})
             value = fields.get(fieldName)
             if value:
                 fieldPacker = DCPacker()

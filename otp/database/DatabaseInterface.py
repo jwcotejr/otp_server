@@ -78,19 +78,27 @@ class DatabaseInterface:
         context = dgi.getUint32()
         retCode = dgi.getUint8()
         if retCode != 0:
+            # The database creation has failed! Set our doId to 0:
             doId = 0
         else:
+            # The database creation was successful! Get our doId:
             doId = dgi.getUint32()
 
         if context not in self._callbacks:
+            # Got an invalid context! Warn the user:
             self.notify.warning('Got DBSERVER_CREATE_STORED_OBJECT_RESP with invalid context %s' % context)
             return
 
+        # Call our callback, and delete it from our dictionary:
         if self._callbacks[context]:
             self._callbacks[context](doId)
 
         del self._callbacks[context]
 
     def handleServerDatagram(self, msgType, dgi):
+        """
+        Handles a datagram coming from the Message Director.
+        """
+        # Handle the message:
         if msgType == MsgTypes.DBSERVER_CREATE_STORED_OBJECT_RESP:
             self.handleCreateStoredObjectResp(dgi)
