@@ -16,6 +16,7 @@ class DatabaseInterface:
 
         # A dictionary of contexts to callbacks:
         self._callbacks = {}
+        self._dclasses = {}
 
     def getContext(self):
         """
@@ -94,6 +95,34 @@ class DatabaseInterface:
             self._callbacks[context](doId)
 
         del self._callbacks[context]
+
+    def getStoredValues(self, sender, control, doId, objectType, fieldNames, callback):
+        """
+        Queries stored object (doId) for stored values from database.
+        """
+
+        # Save the callback:
+        context = self.getContext()
+        self._callbacks[context] = callback
+
+        # Get the DC class from the object type:
+        dcClass = dcFile.getClassByObjectType(objectType)
+        if not dcClass:
+            # This is an invalid object type! Throw an error:
+            self.notify.error('Invalid object type in getStoredValues: %s' % objectType)
+
+        # Save the DC class:
+        self._dclasses[context] = dcClass
+
+        # Now generate and send the datagram:
+        datagram = sender.createRoutedDatagram(MsgTypes.DBSERVER_GET_STORED_VALUES, [control])
+        datagram.addUint32(context)
+        datagram.addUint32(doId)
+        datagram.addUint16(len(fieldNames))
+        for fieldName in fieldNames:
+            datagram.addString(fieldName)
+
+        sender.sendUpstream(datagram)
 
     def handleServerDatagram(self, msgType, dgi):
         """
