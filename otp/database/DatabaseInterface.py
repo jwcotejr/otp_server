@@ -24,10 +24,11 @@ class DatabaseInterface:
         self.__contextCounter = (self.__contextCounter + 1) & 0xFFFFFFFF
         return self.__contextCounter
 
-    def createObject(self, control, objectType, fields={}, callback=None):
+    def createObject(self, sender, control, objectType, fields={}, callback=None):
         """
         Creates an object of the specified type in the specified database.
 
+        sender specifies the client connection that is sending this request. (Required)
         control specifies the control channel of the target database. (Required)
         objectType specifies the type of object to be created. (Required)
         fields is a dictionary containing any fields we want stored in the object on creation. (Optional)
@@ -60,7 +61,7 @@ class DatabaseInterface:
             values[fieldName] = fieldPacker
 
         # Now generate and send the datagram:
-        datagram = self.client.createRoutedDatagram(MsgTypes.DBSERVER_CREATE_STORED_OBJECT, [control])
+        datagram = sender.createRoutedDatagram(MsgTypes.DBSERVER_CREATE_STORED_OBJECT, [control])
         datagram.addUint32(context)
         datagram.addString('')
         datagram.addUint16(objectType)
@@ -71,4 +72,4 @@ class DatabaseInterface:
         for value in values.values():
             datagram.addBlob(value.getBytes())
 
-        self.client.sendUpstream(datagram)
+        sender.sendUpstream(datagram)
