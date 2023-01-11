@@ -179,6 +179,7 @@ class DatabaseInterface:
                     # This is an invalid field name! Throw an error:
                     self.notify.error('Invalid field %s for class %s in handleGetStoredValuesResp!' % (fieldName, dcClass.getName()))
 
+                # Unpack the value for this field:
                 fieldReader = DCPacker()
                 fieldReader.setUnpackData(packedValue)
                 fieldReader.beginUnpack(dcField)
@@ -187,8 +188,10 @@ class DatabaseInterface:
                     # We were unable to unpack this field! Throw an error:
                     self.notify.error('Failed to unpack field: %s' % fieldName)
 
+                # Add the unpacked value for this field to our dictionary:
                 fields[fieldName] = value
 
+        # Call our callback, and delete it from our dictionary:
         if self._callbacks[context]:
             self._callbacks[context](dcClass, fields)
 
