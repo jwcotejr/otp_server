@@ -1,5 +1,7 @@
 from panda3d.direct import DCPacker
 
+from direct.distributed.PyDatagram import PyDatagram
+from direct.distributed.PyDatagramIterator import PyDatagramIterator
 from direct.directnotify import DirectNotifyGlobal
 
 from otp.core import MsgTypes
@@ -104,6 +106,11 @@ class DatabaseInterface:
         context = self.getContext()
         self._callbacks[context] = callback
 
+        # We always want to query for DcObjectType, since it is used by
+        # handleGetStoredValuesResp to get the DC class for unpacking fields:
+        if 'DcObjectType' not in fieldNames:
+            fieldNames.append('DcObjectType')
+
         # Now generate and send the datagram:
         datagram = sender.createRoutedDatagram(MsgTypes.DBSERVER_GET_STORED_VALUES, [control])
         datagram.addUint32(context)
@@ -136,14 +143,30 @@ class DatabaseInterface:
             fields = None
         else:
             # The database query was successful! Get our DC class and fields:
+            packedValues = {}
+            for fieldName in fieldNames:
+                packedValue = dgi.getBlob()
+                packedValues[fieldName] = packedValue
+
             dcClass = None
+            packedObjectType = packedValues.get('DcObjectType')
+            if packedObjectType:
+                objectTypeDg = PyDatagram(packedObjectType)
+                objectTypeDgi = PyDatagramIterator(objectTypeDg)
+                objectType = objectTypeDgi.getString()
+                if not objectType:
+                    # We don't have an object type! Throw an error:
+                    self.notify.error('Got DBSERVER_GET_STORED_VALUES_RESP for doId %s without a DcObjectType!' % doId)
+
+                dcClass = dcFile.getClassByName(objectType)
+                if not dcClass:
+                    # This is an invalid object type! Throw an error:
+                    self.notify.error('Invalid object type in handleGetStoredValuesResp: %s' % objectType)
+            else:
+                # We don't have an object type! Throw an error:
+                self.notify.error('Got DBSERVER_GET_STORED_VALUES_RESP for doId %s without a DcObjectType!' % doId)
+
             fields = {}
-
-            values = []
-            for _ in range(numFields):
-                value = dgi.getBlob()
-                values.append(value)
-
             for _ in range(numFields):
                 found = dgi.getUint8()
 
