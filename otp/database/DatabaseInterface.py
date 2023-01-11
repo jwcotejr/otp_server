@@ -167,8 +167,32 @@ class DatabaseInterface:
                 self.notify.error('Got DBSERVER_GET_STORED_VALUES_RESP for doId %s without a DcObjectType!' % doId)
 
             fields = {}
-            for _ in range(numFields):
+            for fieldName, packedValue in packedValues.items():
                 found = dgi.getUint8()
+                if not found:
+                    self.notify.warning('Field %s not found in DBSERVER_GET_STORED_VALUES_RESP' % fieldName)
+                    continue
+
+                # Get our DC field:
+                dcField = dcClass.getFieldByName(fieldName)
+                if not dcField:
+                    # This is an invalid field name! Throw an error:
+                    self.notify.error('Invalid field %s for class %s in handleGetStoredValuesResp!' % (fieldName, dcClass.getName()))
+
+                fieldReader = DCPacker()
+                fieldReader.setUnpackData(packedValue)
+                fieldReader.beginUnpack(dcField)
+                value = dcField.unpackArgs(fieldReader)
+                if not fieldReader.endUnpack():
+                    # We were unable to unpack this field! Throw an error:
+                    self.notify.error('Failed to unpack field: %s' % fieldName)
+
+                fields[fieldName] = value
+
+        if self._callbacks[context]:
+            self._callbacks[context](dcClass, fields)
+
+        del self._callbacks[context]
 
     def handleServerDatagram(self, msgType, dgi):
         """
