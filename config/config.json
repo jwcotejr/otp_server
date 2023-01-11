@@ -25,7 +25,7 @@
             "control": 4003,
             "generate": {
                 "min": 100000000,
-                "max": 399999999
+                "max": 199999999
             },
             "backend": {
                 "type": "mongodb",
