@@ -53,7 +53,9 @@ class Client(NetworkClient):
         msgType = dgi.getUint16()
 
         # Handle the message:
-        self.acceptor.dbInterface.handleServerDatagram(msgType, dgi)
+        if msgType in (MsgTypes.DBSERVER_CREATE_STORED_OBJECT_RESP,
+                       MsgTypes.DBSERVER_GET_STORED_VALUES_RESP):
+            self.acceptor.dbInterface.handleServerDatagram(msgType, dgi)
 
     def createRoutedDatagram(self, msgType, channels=[]):
         """

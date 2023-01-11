@@ -16,7 +16,6 @@ class DatabaseInterface:
 
         # A dictionary of contexts to callbacks:
         self._callbacks = {}
-        self._dclasses = {}
 
     def getContext(self):
         """
@@ -96,7 +95,7 @@ class DatabaseInterface:
 
         del self._callbacks[context]
 
-    def getStoredValues(self, sender, control, doId, objectType, fieldNames, callback):
+    def getStoredValues(self, sender, control, doId, fieldNames, callback):
         """
         Queries stored object (doId) for stored values from database.
         """
@@ -104,15 +103,6 @@ class DatabaseInterface:
         # Save the callback:
         context = self.getContext()
         self._callbacks[context] = callback
-
-        # Get the DC class from the object type:
-        dcClass = dcFile.getClassByObjectType(objectType)
-        if not dcClass:
-            # This is an invalid object type! Throw an error:
-            self.notify.error('Invalid object type in getStoredValues: %s' % objectType)
-
-        # Save the DC class:
-        self._dclasses[context] = dcClass
 
         # Now generate and send the datagram:
         datagram = sender.createRoutedDatagram(MsgTypes.DBSERVER_GET_STORED_VALUES, [control])
@@ -124,6 +114,39 @@ class DatabaseInterface:
 
         sender.sendUpstream(datagram)
 
+    def handleGetStoredValuesResp(self, dgi):
+        context = dgi.getUint32()
+        doId = dgi.getUint32()
+        numFields = dgi.getUint16()
+
+        fieldNames = []
+        for _ in range(numFields):
+            fieldName = dgi.getString()
+            fieldNames.append(fieldName)
+
+        if context not in self._callbacks:
+            # Got an invalid context! Warn the user:
+            self.notify.warning('Got DBSERVER_GET_STORED_VALUES_RESP with invalid context %s' % context)
+            return
+
+        retCode = dgi.getUint8()
+        if retCode != 0:
+            # The database query has failed! Set dcClass and fields to None:
+            dcClass = None
+            fields = None
+        else:
+            # The database query was successful! Get our DC class and fields:
+            dcClass = None
+            fields = {}
+
+            values = []
+            for _ in range(numFields):
+                value = dgi.getBlob()
+                values.append(value)
+
+            for _ in range(numFields):
+                found = dgi.getUint8()
+
     def handleServerDatagram(self, msgType, dgi):
         """
         Handles a datagram coming from the Message Director.
@@ -131,3 +154,5 @@ class DatabaseInterface:
         # Handle the message:
         if msgType == MsgTypes.DBSERVER_CREATE_STORED_OBJECT_RESP:
             self.handleCreateStoredObjectResp(dgi)
+        elif msgType == MsgTypes.DBSERVER_GET_STORED_VALUES_RESP:
+            self.handleGetStoredValuesResp(dgi)
