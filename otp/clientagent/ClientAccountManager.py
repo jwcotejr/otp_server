@@ -1,6 +1,8 @@
 from direct.directnotify import DirectNotifyGlobal
 from direct.fsm.FSM import FSM
 
+from otp.core import MsgTypes
+
 import semidbm
 
 
@@ -17,6 +19,7 @@ class ClientOperation(FSM):
 
 
 class LoginAccountFSM(ClientOperation):
+    notify = DirectNotifyGlobal.directNotify.newCategory('LoginAccountFSM')
 
     def __init__(self, manager, client):
         ClientOperation.__init__(self, manager, client)
@@ -24,9 +27,42 @@ class LoginAccountFSM(ClientOperation):
         # Our target client's play token:
         self.playToken = None
 
+        # Our target client's account ID:
+        self.accountId = None
+
     def enterStart(self, playToken):
         # Store our play token:
         self.playToken = playToken
+
+        # Check if our play token exists in the accounts database:
+        if self.playToken not in self.manager.dbm:
+            # It does not, so we will create a new account object:
+            self.demand('CreateAccount')
+            return
+
+        # It does, so we will query the database for our account object.
+        # First, store our account ID:
+        self.accountId = int(self.manager.dbm[self.playToken])
+
+        # Next, query the database. We don't need to query for any
+        # fields, we're just ensuring that the account object exists
+        # in the database:
+        self.manager.acceptor.dbInterface.getStoredValues(
+            self.client,
+            MsgTypes.DBSERVER_ID,
+            self.accountId,
+            [],
+            self.__handleQueried)
+
+    def __handleQueried(self, dclass, _):
+        # Is this an Account DC class?
+        if dclass != dcFile.getClassByName('Account'):
+            # It is not; likely the account ID was not found in the database. Warn the user:
+            self.notify.warning('Account %s for client %s with play token %s not found in the database!' % (
+                self.accountId, self.client.getChannel(), self.playToken))
+            return
+
+        self.demand('GotAccount')
 
 
 class ClientOperationManager:
@@ -64,4 +100,5 @@ class ClientAccountManager(ClientOperationManager):
         self.dbm = semidbm.open('databases/accounts', 'c')
 
     def handleLogin(self, client, playToken):
+        # LoginAccountFSM will handle the rest:
         self.runOperation(client, LoginAccountFSM, playToken)
