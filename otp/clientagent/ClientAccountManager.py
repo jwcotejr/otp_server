@@ -8,8 +8,25 @@ class ClientOperation(FSM):
 
     def __init__(self, manager, client):
         FSM.__init__(self, self.__class__.__name__)
+
+        # Our account manager:
         self.manager = manager
+
+        # Our target client:
         self.client = client
+
+
+class LoginAccountFSM(ClientOperation):
+
+    def __init__(self, manager, client):
+        ClientOperation.__init__(self, manager, client)
+
+        # Our target client's play token:
+        self.playToken = None
+
+    def enterStart(self, playToken):
+        # Store our play token:
+        self.playToken = playToken
 
 
 class ClientOperationManager:
@@ -47,4 +64,4 @@ class ClientAccountManager(ClientOperationManager):
         self.dbm = semidbm.open('databases/accounts', 'c')
 
     def handleLogin(self, client, playToken):
-        pass  # TODO
+        self.runOperation(client, LoginAccountFSM, playToken)
