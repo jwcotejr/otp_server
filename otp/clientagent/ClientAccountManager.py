@@ -9,7 +9,7 @@ import time
 
 class ClientOperation(FSM):
 
-    def __init__(self, manager, client):
+    def __init__(self, manager, client, callback):
         FSM.__init__(self, self.__class__.__name__)
 
         # Our account manager:
@@ -18,12 +18,15 @@ class ClientOperation(FSM):
         # Our target client:
         self.client = client
 
+        # Our callback:
+        self.callback = callback
+
 
 class LoginAccountFSM(ClientOperation):
     notify = DirectNotifyGlobal.directNotify.newCategory('LoginAccountFSM')
 
-    def __init__(self, manager, client):
-        ClientOperation.__init__(self, manager, client)
+    def __init__(self, manager, client, callback):
+        ClientOperation.__init__(self, manager, client, callback)
 
         # Our target client's play token:
         self.playToken = None
@@ -31,7 +34,10 @@ class LoginAccountFSM(ClientOperation):
         # Our target client's account ID:
         self.accountId = None
 
-    def enterStart(self, playToken):
+        # Our account object's fields:
+        self.account = {}
+
+    def enterStart(self, playToken, fields=[]):
         # Store our play token:
         self.playToken = playToken
 
@@ -45,17 +51,16 @@ class LoginAccountFSM(ClientOperation):
         # First, store our account ID:
         self.accountId = int(self.manager.dbm[self.playToken])
 
-        # Next, query the database. We don't need to query for any
-        # fields, we're just ensuring that the account object exists
-        # in the database:
+        # Next, query the database. We are primarily ensuring that the account object exists
+        # in the database, however we are also querying for any fields specified by the user:
         self.manager.acceptor.dbInterface.getStoredValues(
             self.client,
             MsgTypes.DBSERVER_ID,
             self.accountId,
-            [],
+            fields,
             self.__handleQueried)
 
-    def __handleQueried(self, dclass, _):
+    def __handleQueried(self, dclass, fields):
         # Is this an Account DC class?
         if dclass != dcFile.getClassByName('Account'):
             # It is not; likely the account ID was not found in the database. Warn the user:
@@ -64,12 +69,13 @@ class LoginAccountFSM(ClientOperation):
             return
 
         # Got the account! Move on to the GotAccount state:
+        self.account = fields
         self.demand('GotAccount')
 
     def enterCreateAccount(self):
         # In this state, we will create a new Account object in the database for this play token.
         # First, set up our dictionary of fields/values we want stored in the new Account object:
-        account = {
+        self.account = {
             # ACCOUNT_AV_SET and pirateAvatars defaults are defined in otp.dc
             'HOUSE_ID_SET': [0] * 6,
             'ESTATE_ID': 0,
@@ -122,7 +128,7 @@ class ClientOperationManager:
         # A dictionary of client channels to operations:
         self.channel2operation = {}
 
-    def runOperation(self, client, operationType, *args):
+    def runOperation(self, client, operationType, callback, *args):
         # Get the client channel:
         channel = client.getChannel()
 
@@ -134,7 +140,7 @@ class ClientOperationManager:
             return
 
         # Create the new operation and start it:
-        newOperation = operationType(self, client)
+        newOperation = operationType(self, client, callback)
         self.channel2operation[channel] = newOperation
         newOperation.request('Start', *args)
 
@@ -147,6 +153,6 @@ class ClientAccountManager(ClientOperationManager):
         # Create our dbm:
         self.dbm = semidbm.open('databases/accounts', 'c')
 
-    def handleLogin(self, client, playToken):
+    def handleLogin(self, client, callback, playToken, fields=[]):
         # LoginAccountFSM will handle the rest:
-        self.runOperation(client, LoginAccountFSM, playToken)
+        self.runOperation(client, LoginAccountFSM, callback, playToken, fields)
