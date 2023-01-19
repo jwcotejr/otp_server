@@ -23,7 +23,7 @@ class ClientOperation(FSM):
 
     def enterOff(self, success, *args):
         # Delete this operation from the manager's dictionary:
-        del self.manager.channel2operation[self.client.getChannel()]
+        del self.manager.channel2operation[self.client.getAllocatedChannel()]
 
         # If this operation was successful, and we have a callback, call it:
         if success and self.callback:
@@ -74,7 +74,7 @@ class LoginAccountFSM(ClientOperation):
         if dclass != dcFile.getClassByName('Account'):
             # It is not; likely the account ID was not found in the database. Warn the user:
             self.notify.warning('Account %s for client %s with play token %s not found in the database!' % (
-                self.accountId, self.client.getChannel(), self.playToken))
+                self.accountId, self.client.getAllocatedChannel(), self.playToken))
             self.demand('Off', False)
             return
 
@@ -143,7 +143,7 @@ class ClientOperationManager:
 
     def runOperation(self, client, operationType, callback, *args):
         # Get the client channel:
-        channel = client.getChannel()
+        channel = client.getAllocatedChannel()
 
         # Check if an operation is already running for this client:
         operation = self.channel2operation.get(channel)
