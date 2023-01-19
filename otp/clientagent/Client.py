@@ -14,6 +14,7 @@ class Client(NetworkClient):
         NetworkClient.__init__(self, acceptor, client)
 
         self.channel = channel
+        self.allocatedChannel = channel
         self.state = ClientState.NEW
 
         # Create our connection to the Message Director and override a method:
@@ -99,7 +100,7 @@ class Client(NetworkClient):
         """
         Handles a client disconnect.
         """
-        self.acceptor.deallocateChannel(self.channel)
+        self.acceptor.deallocateChannel(self.allocatedChannel)
         self.acceptor.removeClient(self)
         self.mdConnection.closeConnection()
         self.connected = False

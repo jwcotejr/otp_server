@@ -33,10 +33,7 @@ class ClientAgent(NetworkAcceptor):
         self.accountManager = ClientAccountManager(self)
 
         # A dictionary of connections to clients:
-        self.clientsByConnection = {}
-
-        # A dictionary of channels to clients:
-        self.clientsByChannel = {}
+        self.clients = {}
 
     def getDcHash(self):
         return self.dcHash
@@ -53,8 +50,7 @@ class ClientAgent(NetworkAcceptor):
     def createClient(self, connection):
         channel = self.allocateChannel()
         client = ToontownClient(self, connection, channel, self.mdHost, self.mdPort)
-        self.clientsByConnection[connection] = client
-        self.clientsByChannel[channel] = client
+        self.clients[connection] = client
 
     def removeClient(self, client):
         # First, check to see if the client is connected:
@@ -63,15 +59,14 @@ class ClientAgent(NetworkAcceptor):
 
         self.connectionReader.removeConnection(client.getConnection())
         self.connectionManager.closeConnection(client.getConnection())
-        del self.clientsByConnection[client.getConnection()]
-        del self.clientsByChannel[client.getChannel()]
+        del self.clients[client.getConnection()]
 
     def handleClientDatagram(self, datagram):
         """
         Handles a datagram sent by a client.
         """
         connection = datagram.getConnection()
-        self.clientsByConnection[connection].handleClientDatagram(datagram)
+        self.clients[connection].handleClientDatagram(datagram)
 
     @staticmethod
     def createFromConfig(serviceConfig):
