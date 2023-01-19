@@ -99,7 +99,7 @@ class LoginAccountFSM(ClientOperation):
             self.client,
             MsgTypes.DBSERVER_ID,
             MsgTypes.DBSERVER_ACCOUNT_OBJECT_TYPE,
-            account,
+            self.account,
             self.__handleAccountCreated
         )
 
