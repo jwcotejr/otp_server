@@ -36,7 +36,7 @@ class LoginAccountFSM(ClientOperation):
         self.playToken = playToken
 
         # Check if our play token exists in the accounts database:
-        if self.playToken not in self.manager.dbm:
+        if self.playToken.encode('utf-8') not in self.manager.dbm:
             # It does not, so we will create a new account object:
             self.demand('CreateAccount')
             return
