@@ -100,8 +100,7 @@ class LoginAccountFSM(ClientOperation):
             MsgTypes.DBSERVER_ID,
             MsgTypes.DBSERVER_ACCOUNT_OBJECT_TYPE,
             self.account,
-            self.__handleAccountCreated
-        )
+            self.__handleAccountCreated)
 
     def __handleAccountCreated(self, doId):
         # Are we currently in the CreateAccount state?
@@ -160,6 +159,7 @@ class ClientOperationManager:
 
 
 class ClientAccountManager(ClientOperationManager):
+    notify = DirectNotifyGlobal.directNotify.newCategory('ClientAccountManager')
 
     def __init__(self, acceptor):
         ClientOperationManager.__init__(self, acceptor)
