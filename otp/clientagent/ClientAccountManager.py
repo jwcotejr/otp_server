@@ -21,6 +21,15 @@ class ClientOperation(FSM):
         # Our callback:
         self.callback = callback
 
+    def enterOff(self, success, *args):
+        # Delete this operation from the manager's dictionary:
+        del self.manager.channel2operation[self.client.getChannel()]
+
+        # If this operation was successful, and we have a callback, call it:
+        if success and self.callback:
+            # Pass all remaining args to the callback as well:
+            self.callback(*args)
+
 
 class LoginAccountFSM(ClientOperation):
     notify = DirectNotifyGlobal.directNotify.newCategory('LoginAccountFSM')
@@ -66,6 +75,7 @@ class LoginAccountFSM(ClientOperation):
             # It is not; likely the account ID was not found in the database. Warn the user:
             self.notify.warning('Account %s for client %s with play token %s not found in the database!' % (
                 self.accountId, self.client.getChannel(), self.playToken))
+            self.demand('Off', False)
             return
 
         # Got the account! Move on to the GotAccount state:
@@ -99,12 +109,14 @@ class LoginAccountFSM(ClientOperation):
             # We are not, so we should not continue further. Warn the user:
             self.notify.warning('Got account created response for play token %s outside of CreateAccount state!' % (
                 self.playToken))
+            self.demand('Off', False)
             return
 
         # Was the account creation successful?
         if not doId:
             # It was not. Warn the user:
             self.notify.warning('Database failed to create new account object for play token %s' % self.playToken)
+            self.demand('Off', False)
             return
 
         # Account created successfully! Store the account ID in the accounts database:
@@ -116,7 +128,9 @@ class LoginAccountFSM(ClientOperation):
         self.demand('GotAccount')
 
     def enterGotAccount(self):
-        print('enterGotAccount')
+        # We're done here! Move on to the Off state, which will also call our callback.
+        # We'll also pass our play token and our account fields to the callback:
+        self.demand('Off', True, self.playToken, self.account)
 
 
 class ClientOperationManager:
