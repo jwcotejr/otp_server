@@ -4,6 +4,7 @@ from direct.fsm.FSM import FSM
 from otp.core import MsgTypes
 
 import semidbm
+import time
 
 
 class ClientOperation(FSM):
@@ -62,7 +63,54 @@ class LoginAccountFSM(ClientOperation):
                 self.accountId, self.client.getChannel(), self.playToken))
             return
 
+        # Got the account! Move on to the GotAccount state:
         self.demand('GotAccount')
+
+    def enterCreateAccount(self):
+        # In this state, we will create a new Account object in the database for this play token.
+        # First, set up our dictionary of fields/values we want stored in the new Account object:
+        account = {
+            # ACCOUNT_AV_SET and pirateAvatars defaults are defined in otp.dc
+            'HOUSE_ID_SET': [0] * 6,
+            'ESTATE_ID': 0,
+            'ACCOUNT_AV_SET_DEL': [],
+            'CREATED': time.ctime(),
+            'LAST_LOGIN': time.ctime()
+        }
+
+        # Now, create the new Account object in the database:
+        self.manager.acceptor.dbInterface.createStoredObject(
+            self.client,
+            MsgTypes.DBSERVER_ID,
+            MsgTypes.DBSERVER_ACCOUNT_OBJECT_TYPE,
+            account,
+            self.__handleAccountCreated
+        )
+
+    def __handleAccountCreated(self, doId):
+        # Are we currently in the CreateAccount state?
+        if self.state != 'CreateAccount':
+            # We are not, so we should not continue further. Warn the user:
+            self.notify.warning('Got account created response for play token %s outside of CreateAccount state!' % (
+                self.playToken))
+            return
+
+        # Was the account creation successful?
+        if not doId:
+            # It was not. Warn the user:
+            self.notify.warning('Database failed to create new account object for play token %s' % self.playToken)
+            return
+
+        # Account created successfully! Store the account ID in the accounts database:
+        self.accountId = doId
+        self.manager.dbm[self.playToken] = str(self.accountId)
+        self.manager.dbm.sync()
+
+        # Got the account! Move on to the GotAccount state:
+        self.demand('GotAccount')
+
+    def enterGotAccount(self):
+        print('enterGotAccount')
 
 
 class ClientOperationManager:

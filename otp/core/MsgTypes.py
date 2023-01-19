@@ -14,3 +14,5 @@ DBSERVER_GET_STORED_VALUES_RESP = 1013
 # The ID number of the database server.  The above direct-to-dbserver
 # transactions are sent to this ID.
 DBSERVER_ID = 4003
+
+DBSERVER_ACCOUNT_OBJECT_TYPE = 1
