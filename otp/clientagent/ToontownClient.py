@@ -53,3 +53,7 @@ class ToontownClient(Client):
         # Get the account connection channel and subscribe to it:
         accountConnectionChannel = Util.GetAccountConnectionChannel(accountId)
         self.subscribeChannel(accountConnectionChannel)
+
+        # Set our channel to the account channel:
+        accountChannel = accountId << 32
+        self.setChannel(accountChannel)

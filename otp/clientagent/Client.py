@@ -124,3 +124,13 @@ class Client(NetworkClient):
         datagram.addString(message)
         self.sendDownstream(datagram)
         self.handleDisconnect()
+
+    def setChannel(self, channel):
+        if self.channel == channel:
+            return
+
+        if self.channel != self.allocatedChannel:
+            self.unsubscribeChannel(self.channel)
+
+        self.subscribeChannel(channel)
+        self.channel = channel
