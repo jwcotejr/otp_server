@@ -1,5 +1,7 @@
 from otp.clientagent.Client import Client
 from otp.clientagent import ClientMessages
+from otp.core.Globals import ClientState
+from otp.core import Util
 
 
 class ToontownClient(Client):
@@ -33,3 +35,21 @@ class ToontownClient(Client):
         if tokenType != ClientMessages.CLIENT_LOGIN_3_DISL_TOKEN:
             self.sendDisconnect(122, 'Token type mismatch')
             return
+
+        # The account manager will handle the rest:
+        self.acceptor.accountManager.handleLogin(
+            self,
+            self.sendClientLoginToontownResp,
+            playToken,
+            ['CREATED'])
+
+    def sendClientLoginToontownResp(self, playToken, accountId, fields):
+        # Un-sandbox the client:
+        self.state = ClientState.ESTABLISHED
+
+        # Set the account ID:
+        self.accountId = accountId
+
+        # Get the account connection channel and subscribe to it:
+        accountConnectionChannel = Util.GetAccountConnectionChannel(accountId)
+        self.subscribeChannel(accountConnectionChannel)

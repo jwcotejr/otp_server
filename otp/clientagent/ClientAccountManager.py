@@ -128,8 +128,8 @@ class LoginAccountFSM(ClientOperation):
 
     def enterGotAccount(self):
         # We're done here! Move on to the Off state, which will also call our callback.
-        # We'll also pass our play token and our account fields to the callback:
-        self.demand('Off', True, self.playToken, self.account)
+        # We'll also pass our play token, account ID, and account fields to the callback:
+        self.demand('Off', True, self.playToken, self.accountId, self.account)
 
 
 class ClientOperationManager:

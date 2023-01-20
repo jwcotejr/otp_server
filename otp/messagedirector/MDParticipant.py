@@ -18,6 +18,8 @@ class MDParticipant(NetworkClient):
 
         if msgType == MsgTypes.CONTROL_SET_CHANNEL:
             self.handleControlSetChannel(dgi)
+        elif msgType == MsgTypes.CONTROL_REMOVE_CHANNEL:
+            self.handleControlRemoveChannel(dgi)
 
     def handleControlSetChannel(self, dgi):
         # Get the channel we want to subscribe to:
@@ -25,6 +27,13 @@ class MDParticipant(NetworkClient):
 
         # Subscribe to the channel:
         self.subscribeChannel(channel)
+
+    def handleControlRemoveChannel(self, dgi):
+        # Get the channel we want to unsubscribe from:
+        channel = dgi.getUint64()
+
+        # Unsubscribe from the channel:
+        self.unsubscribeChannel(channel)
 
     def subscribeChannel(self, channel):
         self.channels.append(channel)

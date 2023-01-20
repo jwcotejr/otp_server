@@ -16,6 +16,7 @@ class Client(NetworkClient):
         self.channel = channel
         self.allocatedChannel = channel
         self.state = ClientState.NEW
+        self.accountId = 0
 
         # Create our connection to the Message Director and override a method:
         self.mdConnection = NetworkConnector(mdHost, mdPort)
@@ -94,6 +95,14 @@ class Client(NetworkClient):
         """
         datagram = self.createHandledDatagram(MsgTypes.CONTROL_SET_CHANNEL)
         datagram.addUint64(channel)  # Channel we are subscribing to.
+        self.sendUpstream(datagram)
+
+    def unsubscribeChannel(self, channel):
+        """
+        Unsubscribes from a channel.
+        """
+        datagram = self.createHandledDatagram(MsgTypes.CONTROL_REMOVE_CHANNEL)
+        datagram.addUint64(channel)  # Channel we are unsubscribing from.
         self.sendUpstream(datagram)
 
     def handleDisconnect(self):
