@@ -1,6 +1,8 @@
 from panda3d.core import QueuedConnectionManager, QueuedConnectionReader
 from panda3d.core import ConnectionWriter, NetDatagram
 
+from direct.task.TaskManagerGlobal import taskMgr
+
 from otp.core.UniqueObject import UniqueObject
 
 

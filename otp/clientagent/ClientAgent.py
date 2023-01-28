@@ -1,9 +1,10 @@
 from panda3d.core import UniqueIdAllocator
 
-from otp.net.NetworkAcceptor import NetworkAcceptor
-from otp.database.DatabaseInterface import DatabaseInterface
 from otp.clientagent.ClientAccountManager import ClientAccountManager
 from otp.clientagent.ToontownClient import ToontownClient
+from otp.core import Globals
+from otp.database.DatabaseInterface import DatabaseInterface
+from otp.net.NetworkAcceptor import NetworkAcceptor
 
 
 class ClientAgent(NetworkAcceptor):
@@ -17,7 +18,7 @@ class ClientAgent(NetworkAcceptor):
         # Set our DC hash:
         self.dcHash = dcHash
         if self.dcHash is None:
-            self.dcHash = dcFile.getHash()
+            self.dcHash = Globals.ServerDCFile.getHash()
 
         # Create our channel allocator:
         self.channelAllocator = UniqueIdAllocator(channelMin, channelMax)
@@ -71,7 +72,7 @@ class ClientAgent(NetworkAcceptor):
     @staticmethod
     def createFromConfig(serviceConfig):
         # Do we have a Message Director?
-        mdConfig = config.get('messagedirector', {})
+        mdConfig = Globals.ServerConfig.get('messagedirector', {})
         if not mdConfig:
             # If we don't have a Message Director, we cannot create a Client Agent.
             raise Exception('Cannot create a Client Agent without a Message Director!')

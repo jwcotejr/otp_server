@@ -1,7 +1,7 @@
 from direct.directnotify import DirectNotifyGlobal
 from direct.fsm.FSM import FSM
 
-from otp.core import MsgTypes
+from otp.core import Globals, MsgTypes
 
 import semidbm
 import time
@@ -71,7 +71,7 @@ class LoginAccountFSM(ClientOperation):
 
     def __handleQueried(self, dclass, fields):
         # Is this an Account DC class?
-        if dclass != dcFile.getClassByName('Account'):
+        if dclass != Globals.ServerDCFile.getClassByName('Account'):
             # It is not; likely the account ID was not found in the database. Warn the user:
             self.notify.warning('Account %s for client %s with play token %s not found in the database!' % (
                 self.accountId, self.client.getAllocatedChannel(), self.playToken))

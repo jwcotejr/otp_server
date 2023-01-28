@@ -1,12 +1,12 @@
 from panda3d.direct import DCPacker
 
+from direct.directnotify import DirectNotifyGlobal
 from direct.distributed.PyDatagram import PyDatagram
 from direct.distributed.PyDatagramIterator import PyDatagramIterator
-from direct.directnotify import DirectNotifyGlobal
 
-from otp.net.NetworkConnector import NetworkConnector
+from otp.core import Globals, MsgTypes
 from otp.database import DBBackendFactory
-from otp.core import MsgTypes
+from otp.net.NetworkConnector import NetworkConnector
 
 
 class DatabaseServer(NetworkConnector):
@@ -91,7 +91,7 @@ class DatabaseServer(NetworkConnector):
         numValues = dgi.getUint16()
 
         # Get the DC class from the object type:
-        dcClass = dcFile.getClassByObjectType(objectType)
+        dcClass = Globals.ServerDCFile.getClassByObjectType(objectType)
         if not dcClass:
             # This is an invalid object type! Warn the user:
             self.notify.warning('Invalid object type in DBSERVER_CREATE_STORED_OBJECT: %s' % objectType)
@@ -266,7 +266,7 @@ class DatabaseServer(NetworkConnector):
             # We're done here:
             return
 
-        dcClass = dcFile.getClassByName(className)
+        dcClass = Globals.ServerDCFile.getClassByName(className)
         if not dcClass:
             # Unable to find a matching DC class with this name! Perhaps it doesn't
             # exist in our DC file, or the database entry is invalid? Warn the user:
@@ -365,7 +365,7 @@ class DatabaseServer(NetworkConnector):
     @staticmethod
     def createFromConfig(serviceConfig):
         # Do we have a Message Director?
-        mdConfig = config.get('messagedirector', {})
+        mdConfig = Globals.ServerConfig.get('messagedirector', {})
         if not mdConfig:
             # If we don't have a Message Director, we cannot create a Database Server.
             raise Exception('Cannot create a Database Server without a Message Director!')

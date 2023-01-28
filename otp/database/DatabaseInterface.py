@@ -1,10 +1,10 @@
 from panda3d.direct import DCPacker
 
+from direct.directnotify import DirectNotifyGlobal
 from direct.distributed.PyDatagram import PyDatagram
 from direct.distributed.PyDatagramIterator import PyDatagramIterator
-from direct.directnotify import DirectNotifyGlobal
 
-from otp.core import MsgTypes
+from otp.core import Globals, MsgTypes
 
 
 class DatabaseInterface:
@@ -42,7 +42,7 @@ class DatabaseInterface:
         self._callbacks[context] = callback
 
         # Get the DC class from the object type:
-        dcClass = dcFile.getClassByObjectType(objectType)
+        dcClass = Globals.ServerDCFile.getClassByObjectType(objectType)
         if not dcClass:
             # This is an invalid object type! Throw an error:
             self.notify.error('Invalid object type in createStoredObject: %s' % objectType)
@@ -158,7 +158,7 @@ class DatabaseInterface:
                     # We don't have an object type! Throw an error:
                     self.notify.error('Got DBSERVER_GET_STORED_VALUES_RESP for doId %s without a DcObjectType!' % doId)
 
-                dcClass = dcFile.getClassByName(objectType)
+                dcClass = Globals.ServerDCFile.getClassByName(objectType)
                 if not dcClass:
                     # This is an invalid object type! Throw an error:
                     self.notify.error('Invalid object type in handleGetStoredValuesResp: %s' % objectType)

@@ -1,3 +1,5 @@
+from direct.task.TaskManagerGlobal import taskMgr
+
 from otp.core.UniqueObject import UniqueObject
 
 

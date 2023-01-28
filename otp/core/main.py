@@ -1,39 +1,34 @@
 from direct.task.TaskManagerGlobal import taskMgr
 
-from otp.dclass.NetworkDCFile import NetworkDCFile
 from otp.config.Config import Config
+from otp.core import Globals, ServiceFactory
+from otp.dclass.NetworkDCFile import NetworkDCFile
 from otp.messagedirector.MessageDirector import MessageDirector
-from otp.core import ServiceFactory
 
-import builtins
-
-
-# Create our global task manager:
-builtins.taskMgr = taskMgr
 
 # Load our config:
 # TODO: Allow this to be specified via an argument?
-builtins.config = Config('config/config.json')
+Globals.ServerConfig = Config('config/config.json')
 
 # Create our global DC file:
-builtins.dcFile = NetworkDCFile()
+Globals.ServerDCFile = NetworkDCFile()
 
 # Add our DC files specified in the config into the global DC file:
-for path in config.get('general', {}).get('dc-files', []):
-    dcFile.addDcFile(path)
+for path in Globals.ServerConfig.get('general', {}).get('dc-files', []):
+    Globals.ServerDCFile.addDcFile(path)
 
 # Read our DC files:
-dcFile.readDcFiles()
+Globals.ServerDCFile.readDcFiles()
 
 # If the Message Director is defined in the config, create it first:
-mdConfig = config.get('messagedirector', {})
+mdConfig = Globals.ServerConfig.get('messagedirector', {})
 if mdConfig:
     mdHost = mdConfig['host']
     mdPort = mdConfig['port']
     MessageDirector(mdHost, mdPort)
 
 # Now, create all of our services:
-for serviceConfig in config.get('services', []):
+for serviceConfig in Globals.ServerConfig.get('services', []):
     serviceName = serviceConfig['type']
     ServiceFactory.createService(serviceName, serviceConfig)
 
